@@ -1,6 +1,8 @@
 #pragma once
 
-using namespace std;
+#include <string>
+
+using std::wstring;
 
 enum vtype { EMP, DW, STR, FLT };
 
@@ -52,5 +54,4 @@ public:
 	var& operator+=(const long double& rhs);
 
 	void resize(ulong newsize);
-
 };

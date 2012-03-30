@@ -4,6 +4,7 @@
 //
 #pragma once
 
+/*
 //remove debug build warnings (debug names too long)
 #ifdef _DEBUG
 #pragma warning (disable : 4786)
@@ -60,3 +61,4 @@ using namespace std;
 #endif
 
 #include "resource.h"
+*/

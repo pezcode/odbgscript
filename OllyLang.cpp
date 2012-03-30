@@ -1,14 +1,32 @@
 // OllyLang.cpp : Defines the entry point for the console application.
 //
-#include "StdAfx.h"
+#include "OllyLang.h"
 
-using namespace std;
+#include "version.h"
+#include "HelperFunctions.h"
+#include "resource.h"
+
+#include "ODbgScript.h"
+#include "mru.h"
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <algorithm>
+
+using std::wifstream;
+using std::getline;
+using std::cerr;
+using std::endl;
+using std::transform;
+
+//using namespace std;
 
 OllyLang::OllyLang()
 {
 	memset(&wndProg,0,sizeof(wndProg));
 	memset(&wndLog,0,sizeof(wndLog));
-	StrcopyW(wndLog.name,SHORTNAME,PLUGIN_NAME);
+	wcsncpy(wndLog.name,PLUGIN_NAME, SHORTNAME);
 	wndLog.mode=TABLE_SAVEALL;
 
 	script_state = SS_NONE;
@@ -600,7 +618,7 @@ bool OllyLang::LoadBreakPoints(wstring fileName) {
 	Getfromini(NULL,PLUGIN_NAME, L"BP_FILE", L"%s", sbuffer);
 	s.assign((wchar_t*)sbuffer);
 
-	if (StrCmpIW(fileName.c_str(),s.c_str())!=0)
+	if (wcsicmp(fileName.c_str(),s.c_str())!=0)
 		return false;
 
 	int i,bpcnt=0,p;
@@ -2086,13 +2104,13 @@ void OllyLang::menuListVariables(HMENU mVars,int cmdFirst) {
 
 			if (p.second.dw != 0) {
 				AppendMenu(menu,MF_SEPARATOR,0,L"-");
-				StrCpyW(buffer,L"Follow in disassembler");
+				wcscpy(buffer,L"Follow in disassembler");
 				AppendMenu(menu,MF_STRING,CMD_POPUP_FDISASM + cmdIndex, buffer);
-				StrCpyW(buffer,L"Follow in dump");
+				wcscpy(buffer,L"Follow in dump");
 				AppendMenu(menu,MF_STRING,CMD_POPUP_FDUMP   + cmdIndex, buffer);
-				StrCpyW(buffer,L"Follow in stack");
+				wcscpy(buffer,L"Follow in stack");
 				AppendMenu(menu,MF_STRING,CMD_POPUP_FSTACK  + cmdIndex, buffer);
-				StrCpyW(buffer,L"Open memory dump");
+				wcscpy(buffer,L"Open memory dump");
 				AppendMenu(menu,MF_STRING,CMD_POPUP_ODUMP   + cmdIndex, buffer);
 			}
 		}
@@ -2691,6 +2709,8 @@ void OllyLang::addHistoryStep(int line)
 	}
 }
 
+/*
 #include "var.cpp"
 
 #include "OllyLangCommands.cpp"
+*/

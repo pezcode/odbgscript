@@ -1,3 +1,10 @@
+#include "ollydbg201.h"
+#include "version.h"
+#include <string>
+#include <shlwapi.h>
+
+using std::wstring;
+
 //NOTE : OllyDBG Main Menu is Static... so we need to store MRU for next OllyDbg start
 
 void mruAddFile(wstring filePath) {
@@ -5,12 +12,11 @@ void mruAddFile(wstring filePath) {
 	wchar_t buf[4096] = {0};
 
 	int n;
-	wchar_t key[5];
-	StrCpyW(key,L"NRU ");
+	wchar_t key[5] = L"NRU ";
 
 	for(n=1; n<=9; n++) { 
 		key[3]=n + 0x30; //ASCII n
-		ZeroMemory(&buf, sizeof(buf));
+		memset(&buf, 0, sizeof(buf));
 		Getfromini(NULL,PLUGIN_NAME, key, L"%s", buf);
 		if (wcscmp(buf,filePath.c_str())==0) {
 			//Move File to first MRU
@@ -130,7 +136,7 @@ int mruGetCurrentMenu(wchar_t* buf) {
 					buf2[c+v]=']';
 				}
 
-				StrCpyW(&buf[p],&buf2[c]); p+=wcslen(&buf2[c]);
+				wcscpy(&buf[p],&buf2[c]); p+=wcslen(&buf2[c]);
 				buf[p]=',';p++; 
 			}
 		}

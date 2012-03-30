@@ -1,5 +1,18 @@
 #pragma once
 
+#include <windows.h>
+#include "ollydbg201.h"
+
+#include <string>
+#include <vector>
+
+using std::string;
+using std::wstring;
+using std::vector;
+
+typedef unsigned int uint;
+typedef unsigned long ulong;
+
 // General functions
 wstring ToLower(wstring in);
 int searchx(wchar_t *SearchBuff, int BuffSize, wchar_t *SearchString, int StringLen, wchar_t wc);

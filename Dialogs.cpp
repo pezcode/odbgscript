@@ -1,3 +1,6 @@
+#include <windows.h>
+#include "resource.h"
+#include "ODbgScript.h"
 
 INT_PTR CALLBACK InputDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {

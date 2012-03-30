@@ -2,14 +2,14 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_INIFILE_H__99976B4B_DBA1_4D1E_AA14_CBEB63042FD1__INCLUDED_)
-#define AFX_INIFILE_H__99976B4B_DBA1_4D1E_AA14_CBEB63042FD1__INCLUDED_
+//#if !defined(AFX_INIFILE_H__99976B4B_DBA1_4D1E_AA14_CBEB63042FD1__INCLUDED_)
+//#define AFX_INIFILE_H__99976B4B_DBA1_4D1E_AA14_CBEB63042FD1__INCLUDED_
 
-#if _MSC_VER > 1000
+//#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+//#endif // _MSC_VER > 1000
 
-#include <afx.h>
+//#include <afx.h>
 
 class CIniReader  
 {

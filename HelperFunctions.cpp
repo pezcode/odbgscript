@@ -1,7 +1,17 @@
-#include "StdAfx.h"
+//#include "StdAfx.h"
 
-#include "mru.cpp"
+#include "HelperFunctions.h"
+
+//#include "mru.cpp"
 #include "dumper.h"
+#include "version.h"
+
+#include <iostream>
+#include <algorithm>
+
+using std::cout;
+using std::endl;
+using std::transform;
 
 // -------------------------------------------------------------------------------
 // HELPER FUNCTIONS
@@ -548,7 +558,7 @@ HWND FindHandle(DWORD dwThreadId, wstring wdwClass, long x, long y)
 	handle = ChildWindowFromPoint(handle,Point);
 	if (handle!=NULL) { 
  		GetClassName(handle,buffer,256); 
-		if (StrCmpNIW(buffer,wdwClass.c_str(),wdwClass.length())==0) {
+		if (wcsnicmp(buffer,wdwClass.c_str(),wdwClass.length())==0) {
 			return handle;
 		}
 	}	

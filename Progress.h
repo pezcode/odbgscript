@@ -1,3 +1,9 @@
+#include "ollydbg201.h"
+#include <string>
+#include "var.h"
+
+using std::wstring;
+
 #define PROG_CMD_LEN 256
 #define PROG_RES_LEN 128
 #define PROG_VAL_LEN 256

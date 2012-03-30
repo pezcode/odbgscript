@@ -1,3 +1,6 @@
+#include <windows.h>
+#include "ollydbg201.h"
+
 DWORD strCurEIP; 
 wchar_t  szFileName[MAX_PATH]={0},szFile[MAX_PATH]={0},szWorkPath[MAX_PATH]={0};
 BOOL  FixSect = true;

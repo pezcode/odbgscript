@@ -1,3 +1,14 @@
+#include "ollydbg201.h"
+#include "LogWindows.h"
+#include "ODbgScript.h"
+#include "version.h"
+#include "resource.h"
+#include <algorithm>
+
+using std::transform;
+
+#include "HelperFunctions.h"
+
 // Custom table function of bookmarks window. Here it is used only to process
 // doubleclicks (custom message WM_USER_DBLCLK). This function is also called
 // on WM_DESTROY, WM_CLOSE (by returning -1, you can prevent window from

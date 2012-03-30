@@ -1,3 +1,14 @@
+#include "OllyLang.h"
+#include "HelperFunctions.h"
+#include "version.h"
+#include "resource.h"
+#include <fstream>
+#include <string>
+#include <algorithm>
+
+using std::wfstream;
+using std::getline;
+using std::transform;
 
 // Temp storage
 wchar_t buffer[32000] = {0};

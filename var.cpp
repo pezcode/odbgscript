@@ -1,4 +1,8 @@
 #include "var.h"
+#include "HelperFunctions.h"
+#include <algorithm>
+
+using std::transform;
 
 var::var()
 {

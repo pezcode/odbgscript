@@ -1,3 +1,11 @@
+#pragma once
+
+#include <windows.h>
+#include "ollydbg201.h"
+#include <string>
+
+using std::wstring;
+
 #define LOG_MSG_LEN TEXTLEN
 
 // This is the table for Script Execution

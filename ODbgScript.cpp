@@ -4,7 +4,15 @@
 
 #define _CHAR_UNSIGNED 1 // huhu
 
-#include "StdAfx.h"
+//#include "StdAfx.h"
+
+#include <windows.h>
+#include "ollydbg201.h"
+#include "version.h"
+#include "OllyLang.h"
+#include "mru.h"
+
+#include "HelperFunctions.h"
 
 //static HINSTANCE hinst;                // DLL instance
 //static HWND      hwmain;               // Handle of main OllyDbg window
@@ -15,7 +23,15 @@ wchar_t buff[65535] = {0};
 // Script state
 int script_state = SS_NONE;
 
-#ifndef __AFX_H__
+OllyLang* ollylang;
+
+int		focusonstop;             // Foreground on pause
+
+bool		dbgfocus=false;
+
+void*	pmemforexec;
+
+//#ifndef __AFX_H__
 // Entry point into a plugin DLL. Many system calls require DLL instance
 // which is passed to DllEntryPoint() as one of parameters. Remember it.
 BOOL APIENTRY DllMain(HINSTANCE hi,DWORD reason,LPVOID reserved)
@@ -37,7 +53,7 @@ BOOL APIENTRY DllMain(HINSTANCE hi,DWORD reason,LPVOID reserved)
 
     return TRUE;
 }
-#endif
+//#endif
 
 // OllyDbg calls this obligatory function once during startup. I place all one-time initializations here.
 int ODBG_Plugininit(int ollydbgversion, HWND hw, ulong *features) 
@@ -707,14 +723,21 @@ static int Mcommand(t_table *pt,wchar_t *name,ulong index,int mode) {
 // Plugin menu that will appear in the main OllyDbg menu. Note that this menu
 // must be static and must be kept for the whole duration of the debugging
 // session.
-static t_menu mainmenu[] = {
+t_menu mainmenu[] =
+{
+	{
+		L"&Run &Script...",
+		L"Open &Script window",
+		KK_DIRECT | KK_SHIFT | 'R', Mrunscript, NULL, 0
+	},
 
-  { L"&Run &Script...",
-       L"Open &Script window",
-       KK_DIRECT|KK_SHIFT|'R', Mrunscript, NULL, 0 },
-  { L"&Script Window",
-       L"Open &Script window",
-       KK_DIRECT|KK_SHIFT|'S', Mscriptwindow, NULL, 0 },
+	{
+		L"&Script Window",
+		L"Open &Script window",
+		KK_DIRECT | KK_SHIFT | 'S', Mscriptwindow, NULL, 0
+	},
+
+
   { L"&Log Window",
        L"Open Script &Log window",
 	   KK_DIRECT|KK_SHIFT|'L', Mlogwindow, NULL, 0 },
@@ -855,8 +878,9 @@ extc void _export _ODBG2_Plugindestroy(void) {
 	ODBG_Plugindestroy();
 };
 
-
+/*
 #include "Dialogs.cpp"
 #include "Progress.cpp"
 #include "LogWindows.cpp"
 #include "Search.cpp"
+*/

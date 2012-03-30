@@ -6,7 +6,7 @@
 #ifndef _UNICODE //for ressource compilation
 #  define _UNICODE
 #endif
-#include "plugin201.h"
+#include "ollydbg201.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////

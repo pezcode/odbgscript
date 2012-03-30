@@ -1,11 +1,22 @@
 #pragma once
 
-#include "StdAfx.h"
+//#include "StdAfx.h"
 
+#include <windows.h>
+#include "ollydbg201.h"
+#include <map>
+#include <set>
+#include <vector>
+#include <string>
 
-typedef unsigned long DWORD;
+using std::map;
+using std::set;
+using std::vector;
+using std::wstring;
+
+//typedef unsigned long DWORD;
 typedef unsigned int uint;
-typedef unsigned char BYTE;
+//typedef unsigned char BYTE;
 
 enum {SS_NONE, SS_INITIALIZED, SS_LOADED, SS_RUNNING, SS_PAUSED};
 

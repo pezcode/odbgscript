@@ -1,4 +1,6 @@
-#include <math.h>
+#include <cmath>
+#include <cwchar>
+#include <windows.h>
 
 bool CompareChar(const wchar_t src, wchar_t* cmp)
 {

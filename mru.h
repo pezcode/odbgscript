@@ -1,3 +1,8 @@
+#include <windows.h>
+#include <string>
+
+using std::wstring;
+
 void mruAddFile(wstring szFilePath);
 //int  mruGetMenu(char* buf);
 int  mruGetCurrentMenu(wchar_t* buf);

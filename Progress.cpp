@@ -1,3 +1,10 @@
+#include <windows.h>
+#include "ollydbg201.h"
+#include "ODbgScript.h"
+#include "HelperFunctions.h"
+#include "version.h"
+#include "resource.h"
+
 long wndprog_func(t_table *pt,HWND hw,UINT msg,WPARAM wp,LPARAM lp) {
   return 0;
 }
