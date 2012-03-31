@@ -17,13 +17,23 @@
 // possibility of such damages.                                               //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
+//
+// Changelog: (edits by atom0s) 
+// 
+//  -> Fixed: Redefinition inclusion; added pragma and ifdef guard.
+//  -> Fixed: DllImport bug; type was defined before the import.
+//  -> Fixed: Exports redefined to proper names without underscore.
+//
+////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-#include <windows.h>
+#ifndef __OLLYDBG2_PLUGIN_INCLUDED__
+#define __OLLYDBG2_PLUGIN_INCLUDED__
 
 #define PLUGIN_VERSION 201             // Version of plugin interface
 
+#include <windows.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// IMPORTANT INFORMATION /////////////////////////////
@@ -112,15 +122,12 @@ typedef unsigned long  ulong;          // Unsigned long
 // oddata.
 
 #ifdef __cplusplus
-
-  #define extc       extern "C"
-  #define _USERENTRY __cdecl
-
-  #define stdapi(type)   extern "C" _export type
+  #define _USERENTRY     __cdecl
+  #define extc           extern "C"
+  #define stdapi(type)   extern "C" type __stdcall
   #define varapi(type)   extern "C" type __cdecl
-  #define oddata(type)   extern "C" _import type const
+  #define oddata(type)   extern "C" const _import type
   #define pentry(type)   extern "C" _export type cdecl
-
 #else
   #define extc
   #define stdapi(type)   extern type __stdcall
@@ -1856,18 +1863,18 @@ typedef struct t_range {
   ulong        rmax;                   // High range limit (INCLUDED!)
 } t_range;
 
-stdapi (int)     Initset(t_range *_set,ulong nmax);
-stdapi (int)     Fullrange(t_range *_set);
-stdapi (int)     Emptyrange(t_range *_set);
-stdapi (ulong)   Getsetcount(const t_range *_set);
-stdapi (int)     Getrangecount(const t_range *_set);
-stdapi (int)     Isinset(const t_range *_set,ulong value);
-stdapi (int)     Getrangebymember(const t_range *_set,ulong value,
+stdapi (int)     Initset(t_range *set,ulong nmax);
+stdapi (int)     Fullrange(t_range *set);
+stdapi (int)     Emptyrange(t_range *set);
+stdapi (ulong)   Getsetcount(const t_range *set);
+stdapi (int)     Getrangecount(const t_range *set);
+stdapi (int)     Isinset(const t_range *set,ulong value);
+stdapi (int)     Getrangebymember(const t_range *set,ulong value,
                    ulong *rmin,ulong *rmax);
-stdapi (int)     Getrangebyindex(const t_range *_set,int index,
+stdapi (int)     Getrangebyindex(const t_range *set,int index,
                    ulong *rmin,ulong *rmax);
-stdapi (int)     Addrange(t_range *_set,ulong rmin,ulong rmax);
-stdapi (int)     Removerange(t_range *_set,ulong rmin,ulong rmax);
+stdapi (int)     Addrange(t_range *set,ulong rmin,ulong rmax);
+stdapi (int)     Removerange(t_range *set,ulong rmin,ulong rmax);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4253,25 +4260,96 @@ oddata (t_table) _srccode;              // Source code
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// PLUGIN EXPORTS ////////////////////////////////
 
-pentry (int)     _ODBG2_Pluginquery(int ollydbgversion,
+pentry (int)     ODBG2_Pluginquery(int ollydbgversion,
                    wchar_t pluginname[SHORTNAME],
                    wchar_t pluginversion[SHORTNAME]);
-pentry (void)    _ODBG2_Pluginanalyse(t_module *pmod);
+pentry (void)    ODBG2_Pluginanalyse(t_module *pmod);
+#ifdef DEBUG_EVENT                     // Requires <winnt.h>
+pentry (void)    ODBG2_Pluginmainloop(DEBUG_EVENT *debugevent);
+#endif
+pentry (void)    ODBG2_Pluginexception(t_reg *preg);
+pentry (int)     ODBG2_Plugindump(t_dump *pd,wchar_t *s,uchar *mask,int n,
+                   int *select,ulong addr,int column);
+pentry (t_menu *) ODBG2_Pluginmenu(wchar_t *type);
+pentry (void)    ODBG2_Pluginsaveudd(t_uddsave *psave,t_module *pmod,
+                   int ismainmodule);
+pentry (void)    ODBG2_Pluginuddrecord(t_module *pmod,int ismainmodule,
+                   ulong tag,ulong size,void *data);
+pentry (void)    ODBG2_Pluginreset(void);
+pentry (int)     ODBG2_Pluginclose(void);
+pentry (void)    ODBG2_Plugindestroy(void);
 
-#ifdef DEBUG_EVENT
-// Requires <winnt.h>
-pentry (void)    _ODBG2_Pluginmainloop(DEBUG_EVENT *debugevent);
+////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// PLUGIN HEADER FIXES ///////////////////////////////
+#ifdef __cplusplus
+    #define aqueue 			    _aqueue
+    #define arguments 			_arguments
+    #define asciicodepage 		_asciicodepage
+    #define bincmd 			    _bincmd
+    #define bphard 			    _bphard
+    #define bpmem 			    _bpmem
+    #define bpoint 			    _bpoint
+    #define bppage 			    _bppage
+    #define color 			    _color
+    #define corexemain 			_corexemain
+    #define cpufeatures 		_cpufeatures
+    #define crname 			    _crname
+    #define dbgbreakpoint 		_dbgbreakpoint
+    #define debugbreak 			_debugbreak
+    #define drname 			    _drname
+    #define executable 			_executable
+    #define fixfont 			_fixfont
+    #define font 			    _font
+    #define fpuname 			_fpuname
+    #define hilite 			    _hilite
+    #define hollyinst 			_hollyinst
+    #define hwclient 			_hwclient
+    #define hwollymain 			_hwollymain
+    #define ischild 			_ischild
+    #define kiuserexcept 		_kiuserexcept
+    #define kusershareddata 	_kusershareddata
+    #define list 			    _list
+    #define mainthreadid 		_mainthreadid
+    #define memory 			    _memory
+    #define mmxname 			_mmxname
+    #define module 			    _module
+    #define netdbg 			    _netdbg
+    #define ntqueryinfo 		_ntqueryinfo
+    #define ollydir 			_ollydir
+    #define ollyfile 			_ollyfile
+    #define ottable 			_ottable
+    #define patch 			    _patch
+    #define peblock 			_peblock
+    #define plugindir 			_plugindir
+    #define premod 			    _premod
+    #define procdata 			_procdata
+    #define process 			_process
+    #define processid 			_processid
+    #define regname 			_regname
+    #define restorewinpos 		_restorewinpos
+    #define rtcond 			    _rtcond
+    #define rtprot 			    _rtprot
+    #define run 			    _run
+    #define rundll 			    _rundll
+    #define scheme 			    _scheme
+    #define segname 			_segname
+    #define sizeatt 			_sizeatt
+    #define sizekey 			_sizekey
+    #define sizename 			_sizename
+    #define skipsystembp 		_skipsystembp
+    #define source 			    _source
+    #define srccode 			_srccode
+    #define ssename 			_ssename
+    #define sysfont 			_sysfont
+    #define systemdir 			_systemdir
+    #define thread 			    _thread
+    #define titlefont 			_titlefont
+    #define tracefile 			_tracefile
+    #define uefilter 			_uefilter
+    #define userspacelimit 		_userspacelimit
+    #define watch 			    _watch
+    #define win 			    _win
+    #define zwcontinue 			_zwcontinue
 #endif
 
-pentry (void)    _ODBG2_Pluginexception(t_reg *preg);
-pentry (int)     _ODBG2_Plugindump(t_dump *pd,wchar_t *s,uchar *mask,int n,
-                   int *select,ulong addr,int column);
-pentry (t_menu*) _ODBG2_Pluginmenu(wchar_t *type);
-pentry (void)    _ODBG2_Pluginsaveudd(t_uddsave *psave,t_module *pmod,
-                   int ismainmodule);
-pentry (void)    _ODBG2_Pluginuddrecord(t_module *pmod,int ismainmodule,
-                   ulong tag,ulong size,void *data);
-pentry (void)    _ODBG2_Pluginreset(void);
-pentry (int)     _ODBG2_Pluginclose(void);
-pentry (void)    _ODBG2_Plugindestroy(void);
-
+#endif // __OLLYDBG2_PLUGIN_INCLUDED__
