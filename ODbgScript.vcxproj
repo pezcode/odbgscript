@@ -36,6 +36,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -77,11 +78,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Dialogs.cpp" />
+    <ClCompile Include="dllmain.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="guicon.cpp" />
     <ClCompile Include="HelperFunctions.cpp" />
-    <ClCompile Include="IniReader.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="LogWindows.cpp" />
     <ClCompile Include="mru.cpp" />
     <ClCompile Include="ODbgScript.cpp" />
@@ -99,13 +101,12 @@
     <ClInclude Include="LogWindows.h" />
     <ClInclude Include="mru.h" />
     <ClInclude Include="ODbgScript.h" />
+    <ClInclude Include="ollydbg110.h" />
+    <ClInclude Include="ollydbg201.h" />
     <ClInclude Include="OllyLang.h" />
-    <ClInclude Include="Plugin110.h" />
-    <ClInclude Include="Plugin201.h" />
     <ClInclude Include="Progress.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Search.h" />
-    <ClInclude Include="StdAfx.h" />
     <ClInclude Include="var.h" />
     <ClInclude Include="version.h" />
   </ItemGroup>

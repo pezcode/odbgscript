@@ -35,7 +35,8 @@ bool OllyLang::DoADD(wstring args)
 		&& GetDWOpValue(ops[1], dw2))
 	{
 		// "0" to force hexa constant
-		args = ops[0] + L",0" + _ultow(dw1 + dw2, wbuf, 16); 
+		_ultow_s(dw1 + dw2, wbuf, 16);
+		args = ops[0] + L",0" + wbuf; 
 		nIgnoreNextValuesHist++;
 		return DoMOV(args);
 	}
@@ -93,7 +94,7 @@ bool OllyLang::DoALLOC(wstring args)
 	if(GetDWOpValue(ops[0], size))
 	{
 
-		HANDLE hDbgPrc = _process;
+		HANDLE hDbgPrc = process;
 		addr = (DWORD) VirtualAllocEx(hDbgPrc,NULL,size,MEM_RESERVE|MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 		variables[V_RES] = addr;
 		//Refresh Memory Window
@@ -138,7 +139,8 @@ bool OllyLang::DoAND(wstring args)
 	if (GetDWOpValue(ops[0], dw1) 
 		&& GetDWOpValue(ops[1], dw2))
 	{
-		args = ops[0] + L", 0" + _ultow(dw1 & dw2, wbuf, 16);
+		_ultow_s(dw1 & dw2, wbuf, 16);
+		args = ops[0] + L", 0" + wbuf;
 		nIgnoreNextValuesHist++;
 		return DoMOV(args);
 	}
@@ -257,8 +259,9 @@ bool OllyLang::DoASMTXT(wstring args)
 	if(GetDWOpValue(ops[0], addr) 
 		&& GetSTROpValue(ops[1],asmfile))
 	{
-		if(fopen(w_wstrto(asmfile).c_str(), "rb")){
-			
+		FILE* file;
+		if(fopen_s(&file, w_wstrto(asmfile).c_str(), "rb") && file){
+			fclose(file);
 			wstring asmline,asmdoc;
 			std::wifstream fin;
 			(asmfile.c_str(), ios::in);
@@ -343,7 +346,7 @@ bool OllyLang::DoBC(wstring args)
 		t_table *bptable;
 		t_bpoint *bpoint;
 		
-		bptable=(t_table*) &_bpoint;
+		bptable=(t_table*) &bpoint;
 		if (bptable==NULL)
 			return false;
 		for (int b=bptable->sorted.n-1; b>=0;b--) {
@@ -362,7 +365,7 @@ bool OllyLang::DoBC(wstring args)
 //clear all loaded breakpoints
 bool OllyLang::DoBCA(wstring args)
 {
-	t_table*  bptable=(t_table*) &_bpoint;
+	t_table*  bptable=(t_table*) &bpoint;
 	if (bptable==NULL)
 		return false;
 
@@ -387,7 +390,7 @@ bool OllyLang::DoBD(wstring args)
 	{
 		//Setbreakpoint(dw, TY_DISABLED, 0);
 		t_bpoint upd_bpoint, *bpoint;
-		t_table* bptable=(t_table*) &_bpoint;
+		t_table* bptable=(t_table*) &bpoint;
 		if (bptable==NULL)
 			return false;
 		for (int b=bptable->sorted.n-1; b>=0;b--) {
@@ -409,7 +412,7 @@ bool OllyLang::DoBD(wstring args)
 bool OllyLang::DoBDA(wstring args)
 {
 	t_bpoint upd_bpoint, *bpoint;
-	t_table* bptable=(t_table*) &_bpoint;
+	t_table* bptable=(t_table*) &bpoint;
 	if (bptable==NULL)
 		return false;
 	for (int b=bptable->sorted.n-1; b>=0;b--) {
@@ -440,7 +443,7 @@ bool OllyLang::DoBEGINSEARCH(wstring args)
 	t_memory* tm;
 	t_table* tt;
 
-	tt=(t_table*) &_memory;
+	tt=(t_table*) &memory;
 	if (tt==NULL)
 		return false;
 
@@ -493,7 +496,7 @@ bool OllyLang::DoBP(wstring args)
 	if(GetDWOpValue(ops[0], dw))
 	{
 		//Setbreakpoint(dw, TY_ACTIVE, 0);
-		t_table* bptable=(t_table*) &_bpoint;
+		t_table* bptable=(t_table*) &bpoint;
 		if (bptable != NULL) {
 			t_bpoint bpoint={0};
 			bpoint.addr = dw;
@@ -924,7 +927,7 @@ bool OllyLang::DoCLOSE(wstring args)
 		}
 		else if(str == L"BREAKPOINTS")
 		{
-			tbl = _bpoint;
+			tbl = bpoint;
 			hwnd = tbl->hw;
 		}
 		else if(str == L"REFERENCES")
@@ -3566,7 +3569,7 @@ bool OllyLang::DoINIR(wstring args)
 		return false;
 	}
 
-	wcscpy(bufkey,key.c_str());
+	wcscpy_s(bufkey,key.c_str());
 
 	if(GetDWOpValue(ops[1], valdef)) {
 		variables[V_RES_1] = Getfromini(NULL,PLUGIN_NAME, bufkey, L"%i", &val);
@@ -3578,7 +3581,7 @@ bool OllyLang::DoINIR(wstring args)
 	}
 
 	if(GetSTROpValue(ops[1], str)) {
-		wcscpy(bufdef,str.c_str());
+		wcscpy_s(bufdef,str.c_str());
 		variables[V_RES_1] = Getfromini(NULL,PLUGIN_NAME, bufkey, L"%s", buffer);
 		if (0 == variables[V_RES_1].dw)
 			variables[V_RES] = buffer;
@@ -3603,7 +3606,7 @@ bool OllyLang::DoINIW(wstring args)
 		return false;
 	}
 
-	wcscpy(bufkey,key.c_str());
+	wcscpy_s(bufkey,key.c_str());
 	
 	if(GetDWOpValue(ops[1], val)) {
 		Writetoini(NULL,PLUGIN_NAME, bufkey, L"%i", val);
@@ -3611,7 +3614,7 @@ bool OllyLang::DoINIW(wstring args)
 	}
 
 	if(GetSTROpValue(ops[1], str)) {
-		wcscpy(buffer,str.c_str());
+		wcscpy_s(buffer,str.c_str());
 		Writetoini(NULL,PLUGIN_NAME, bufkey, L"%s", buffer);
 		return true;
 	}
@@ -3965,12 +3968,12 @@ bool OllyLang::DoLOG(wstring args)
 		//wstring constant
 		if (prefix.compare(L"DEFAULT") == 0) 
 		{
-			wcsncpy(buffer, ops[0].c_str(),TEXTLEN-1);
+			wcsncpy_s(buffer, ops[0].c_str(),TEXTLEN-1);
 		} 
 		else 
 		{
 			prefix = prefix + ops[0];
-			wcsncpy(buffer, prefix.c_str(),TEXTLEN-1);
+			wcsncpy_s(buffer, prefix.c_str(),TEXTLEN-1);
 		}
 		buffer[TEXTLEN-1]=0;
 		Infoline(buffer);
@@ -4050,12 +4053,12 @@ bool OllyLang::DoLOG(wstring args)
 						if (str.length()+ops[0].length() < 4094)
 							wsprintf(buffer, L"%s: %s", ops[0].c_str(), str.c_str());
 						else
-							wcsncpy(buffer, variables[ops[0]].str.c_str(), TEXTLEN-1);
+							wcsncpy_s(buffer, variables[ops[0]].str.c_str(), TEXTLEN-1);
 					} 
 					else 
 					{
 						prefix = prefix + str;
-						wcsncpy(buffer, prefix.c_str(), TEXTLEN-1);
+						wcsncpy_s(buffer, prefix.c_str(), TEXTLEN-1);
 					}
 				} 
 				else 
@@ -4067,12 +4070,12 @@ bool OllyLang::DoLOG(wstring args)
 						if (variables[ops[0]].str.length()+ops[0].length() < 4094)
 							wsprintf(buffer, L"%s: %s", ops[0].c_str(), variables[ops[0]].strclean().c_str());
 						else
-							wcsncpy(buffer, variables[ops[0]].strclean().c_str(), TEXTLEN-1);
+							wcsncpy_s(buffer, variables[ops[0]].strclean().c_str(), TEXTLEN-1);
 					} 
 					else 
 					{
 						prefix = prefix + CleanString(str);
-						wcsncpy(buffer, prefix.c_str(), TEXTLEN-1);
+						wcsncpy_s(buffer, prefix.c_str(), TEXTLEN-1);
 					}
 				}
 				buffer[TEXTLEN-1]=0;
@@ -4405,8 +4408,8 @@ bool OllyLang::DoMSG(wstring args)
 		if (wndProg.hw!=NULL)
 			InvalidateRect(wndProg.hw, NULL, FALSE);
 		
-		//_hwollymain or 0: modal or not
-		HWND hw = _hwollymain;
+		//hwollymain or 0: modal or not
+		HWND hw = hwollymain;
 		int ret = MessageBox(hw, msg.c_str(), L"MSG ODbgScript", MB_ICONINFORMATION | MB_OKCANCEL | MB_TOPMOST | MB_SETFOREGROUND);
 		FocusProgWindow();
 		if(ret == IDCANCEL) {
@@ -4430,7 +4433,7 @@ bool OllyLang::DoMSGYN(wstring args)
 		if (wndProg.hw!=NULL)
 			InvalidateRect(wndProg.hw, NULL, FALSE);
 
-		HWND hw = _hwollymain;
+		HWND hw = hwollymain;
 		int ret = MessageBox(hw, msg.c_str(), L"MSG " PLUGIN_NAME, MB_ICONQUESTION | MB_YESNOCANCEL | MB_TOPMOST | MB_SETFOREGROUND);
 		FocusProgWindow();
 		if(ret == IDCANCEL)
@@ -4471,7 +4474,7 @@ bool OllyLang::DoOLLY(wstring args)
 		}
 		else if (param == L"HWND")
 		{
-			value = (ulong) _hwollymain;
+			value = (ulong) hwollymain;
 			variables[V_RES] = value;
 			return true;
 		}
@@ -4490,7 +4493,7 @@ bool OllyLang::DoOLLY(wstring args)
 		else if (param == L"PATH")
 		{
 			buffer[0] = 0;
-			GetModuleFileName(0,buffer,sizeof(buffer));
+			GetModuleFileName(0,buffer,_countof(buffer));
 			str = buffer;
 			variables[V_RES] = str;
 			return true;
@@ -4500,14 +4503,14 @@ bool OllyLang::DoOLLY(wstring args)
 			//buffer[0] = 0;
 			//GetModuleFileName(0,buffer,sizeof(buffer));
 			//_wsplitpath(buffer,NULL,NULL,buf,NULL);
-			str = _ollyfile;
+			str = ollyfile;
 			variables[V_RES] = str + L".EXE";
 			return true;
 		}
 		else if (param == L"INI")
 		{
 			buffer[0] = 0;
-			GetModuleFileName(0,buffer,sizeof(buffer));
+			GetModuleFileName(0,buffer,_countof(buffer));
 			_wsplitpath(buffer,NULL,NULL,buf,NULL);
 			str = buf;
 			variables[V_RES] = str + L".ini";
@@ -4518,7 +4521,7 @@ bool OllyLang::DoOLLY(wstring args)
 			//buffer[0] = 0;
 			//GetModuleFileName(0,buffer,sizeof(buffer));
 			//_wsplitpath(buffer,NULL,buf,NULL,NULL);
-			str = _ollydir;
+			str = ollydir;
 			variables[V_RES] = str;
 			return true;
 		}
@@ -4538,7 +4541,8 @@ bool OllyLang::DoMUL(wstring args)
 	ulong dw1, dw2;
 	if(GetDWOpValue(ops[0], dw1) && GetDWOpValue(ops[1], dw2))
 	{
-		args = ops[0] + L", 0" + _ultow(dw1 * dw2, buffer, 16);
+		_ultow_s(dw1 * dw2, buffer, 16);
+		args = ops[0] + L", 0" + buffer;
 		nIgnoreNextValuesHist++;
 		return DoMOV(args);
 	}
@@ -4582,7 +4586,8 @@ bool OllyLang::DoNEG(wstring args)
 			mov dw1,eax
 			pop eax
 		}
-		args = ops[0] + L", " +_ultow(dw1, buffer, 16);
+		_ultow_s(dw1, buffer, 16);
+		args = ops[0] + L", " + buffer;
 		nIgnoreNextValuesHist++;
 		return DoMOV(args);
 	}
@@ -4608,7 +4613,8 @@ bool OllyLang::DoNOT(wstring args)
 			mov dw1,eax
 			pop eax
 		}
-		args = ops[0] + L", " +_ultow(dw1, buffer, 16);
+		_ultow_s(dw1, buffer, 16);
+		args = ops[0] + L", " + buffer;
 		nIgnoreNextValuesHist++;
 		return DoMOV(args);
 	}
@@ -4625,7 +4631,8 @@ bool OllyLang::DoOR(wstring args)
 	ulong dw1, dw2;
 	if(GetDWOpValue(ops[0], dw1) && GetDWOpValue(ops[1], dw2))
 	{
-		args = ops[0] + L", 0" + _ultow(dw1 | dw2, buffer, 16);
+		_ultow_s(dw1 | dw2, buffer, 16);
+		args = ops[0] + L", 0" + buffer;
 		nIgnoreNextValuesHist++;
 		return DoMOV(args);
 	}
@@ -4867,7 +4874,7 @@ bool OllyLang::DoRBP ( wstring args )
 
 	if ( saved_bp )
 	{
-		bpt = _bpoint;
+		bpt = bpoint;
 		if ( bpt != NULL )
 		{
 			bpoint = ( t_bpoint * ) bpt->data.data;
@@ -5239,7 +5246,7 @@ bool OllyLang::DoSBP ( wstring args )
 	variables[V_RES] = 0;
 	variables[V_RES_1] = 0;
 
-	bpt = _bpoint;
+	bpt = bpoint;
 	if ( bpt != NULL )
 	{
 		bpoint = ( t_bpoint * ) ( bpt->data.data );
@@ -5632,10 +5639,12 @@ bool OllyLang::DoXCHG(wstring args)
 	ulong dw1, dw2;
 
 	if (GetDWOpValue(ops[0], dw1) && GetDWOpValue(ops[1], dw2)) {
-		args = ops[0] + L", 0" + _ultow(dw2, buffer, 16);
+		_ultow_s(dw2, buffer, 16);
+		args = ops[0] + L", 0" + buffer;
 		nIgnoreNextValuesHist++;
 		DoMOV(args);
-		args = ops[1] + L", 0" + _ultow(dw1, buffer, 16);
+		_ultow_s(dw1, buffer, 16);
+		args = ops[1] + L", 0" + buffer;
 		nIgnoreNextValuesHist++;
 		DoMOV(args);
 		return true;
@@ -5655,7 +5664,8 @@ bool OllyLang::DoXOR(wstring args)
 	if(GetDWOpValue(ops[0], dw1) 
 		&& GetDWOpValue(ops[1], dw2))
 	{
-		args = ops[0] + L", 0" + _ultow(dw1 ^ dw2, buffer, 16);
+		_ultow_s(dw1 ^ dw2, buffer, 16);
+		args = ops[0] + L", 0" + buffer;
 		nIgnoreNextValuesHist++;
 		return DoMOV(args);
 	}
@@ -5670,7 +5680,7 @@ bool OllyLang::DoWRT(wstring args)
 		return false;
 
     wstring path;
-	path.assign(_executable);
+	path.assign(executable);
 
     path = path.substr(0, path.rfind('\\') + 1);
  
@@ -5699,7 +5709,7 @@ bool OllyLang::DoWRT(wstring args)
 				WriteFile(hFile, data.c_str(), data.length(), &dwAccBytes, NULL);
 			CloseHandle(hFile);
 		}
-		return dwAccBytes;
+		return dwAccBytes != 0;
 	}
 	return false;
 }
@@ -5715,7 +5725,7 @@ bool OllyLang::DoWRTA(wstring args)
 	}
 	
     wstring path;
-	path.assign(_executable);
+	path.assign(executable);
 
     path = path.substr(0, path.rfind('\\') + 1);
 
@@ -5750,7 +5760,7 @@ bool OllyLang::DoWRTA(wstring args)
 
 			CloseHandle(hFile);
 		}
-		return dwAccBytes;
+		return dwAccBytes != 0;
 	}
 	return false;
 }

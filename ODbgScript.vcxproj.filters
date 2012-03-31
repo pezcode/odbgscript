@@ -24,9 +24,6 @@
     <ClCompile Include="HelperFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IniReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LogWindows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -49,6 +46,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="var.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,12 +77,6 @@
     <ClInclude Include="OllyLang.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Plugin110.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Plugin201.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Progress.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -92,13 +86,16 @@
     <ClInclude Include="Search.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="var.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ollydbg110.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ollydbg201.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

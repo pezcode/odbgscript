@@ -86,7 +86,7 @@ void Sendshortcut(wstring win,ulong addr,int msg,int ctrl,int shift,int vkcode);
 	#define Pluginwritestringtoini(h,key,val) Writetoini(NULL,PLUGIN_NAME, key, L"%s", val)
 
 	#define Gettext(T,B,X,Y,F) Getstring(0, T, B,sizeof(B), 0,0, X,Y, 0,0)
-	#define Getstatus() _run.status
+	#define Getstatus() run.status
 	#define Infoline(s) Tempinfo(s)
 
 	//STAT_IDLE

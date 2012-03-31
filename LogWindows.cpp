@@ -19,7 +19,8 @@ using std::transform;
 long cdecl wndlog_func(t_table *pt,HWND hw,UINT msg,WPARAM wp,LPARAM lp) {
   t_logwnd_data *pmark;
   wchar_t wbuf[30];
-  Addtolist(msg,0,_itow(msg,wbuf,16));
+  _itow_s(msg,wbuf,16);
+  Addtolist(msg,0,wbuf);
   switch (msg) {
     case WM_USER_DBLCLK:               // Doubleclick
       // Get selection.
@@ -189,7 +190,7 @@ void initLogWindow() {
 	ollylang->wndLog.menu = mainmenu;
 
 	//hinst = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
-	hinst = _hollyinst;
+	hinst = hollyinst;
 	Createtablewindow(&(ollylang->wndLog),0,2,hinst,L"ICO_L",PLUGIN_NAME); //L"Script Log Window"
 
 	}
@@ -286,7 +287,7 @@ int add2log(wchar_t* message) {
 	lline.line = ollylang->tLogLines.size()+1;
 	lline.eip = cpuasm->sel0;
 	lline.size = 1;
-	wcsncpy(lline.message,message,LOG_MSG_LEN-1);
+	wcsncpy_s(lline.message,message,LOG_MSG_LEN-1);
 
 	ollylang->tLogLines.push_back(lline);
 

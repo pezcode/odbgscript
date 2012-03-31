@@ -1,9 +1,12 @@
 #ifdef _DEBUG
 
+#include <windows.h>	
 #include <io.h>		//_open_osfhandle
 #include <fcntl.h>	//_O_TEXT
+#include <cstdio>
+#include <iostream>
 
-#include "StdAfx.h"
+//#include "StdAfx.h"
 
 #ifndef _USE_OLD_IOSTREAMS
 using namespace std;
@@ -52,8 +55,7 @@ void RedirectIOToConsole()
 
 	// make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog 
 	// point to console as well
-	ios::sync_with_stdio();
+	std::ios::sync_with_stdio();
 }
-#endif
-//End of File
 
+#endif

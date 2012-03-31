@@ -110,7 +110,7 @@ int mruGetCurrentMenu(wchar_t* buf) {
 	int c,v;
 	wstring path;
 
-	wcscpy(key,L"NRU ");
+	wcscpy_s(key,L"NRU ");
 
  	for(int n=1; n<=9; n++) {
 		key[3]=n+0x30; //ASCII n
@@ -154,7 +154,7 @@ int mruGetCurrentMenu(HMENU mmru,int cmdIndex) {
 	int c,v;
 	wstring path;
 
-	wcscpy(key,L"NRU ");
+	wcscpy_s(key,L"NRU ");
 
  	for(int n=1; n<=9; n++) {
 		key[3]=n+0x30; //ASCII n

@@ -216,7 +216,8 @@ var& var::operator+=(const wstring& rhs)
 			*this = L"#"+((wstring)dwbuf)+s+L"#";
 		} else {
 			//ulong + STRING >> CONCATE _ultow+str
-			s = _wcsupr(_ultow(dw, dwbuf, 16));
+			_ultow_s(dw, dwbuf, 16);
+			s = _wcsupr_s(dwbuf);
 			*this = s+v.str;
 		}
 	}
@@ -240,7 +241,8 @@ var& var::operator+=(const ulong& rhs)
 			*this = L"#" + s + dwbuf + L"#";
 		} else {
 			//Add Number to a String
-			s = _wcsupr(_ultow(rhs, dwbuf, 16));
+			_ultow_s(rhs, dwbuf, 16);
+			s = _wcsupr_s(dwbuf);
 			str += s;
 			size += s.length();
 		}

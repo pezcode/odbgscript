@@ -18,7 +18,7 @@ ulong u;
 HMENU menu,mLoad,mCmd,mRun,mLabels=NULL,mVars=NULL;
 t_wndprog_data *ppl;
 
-	//HWND hw = _hwollymain;
+	//HWND hw = hwollymain;
 
 	switch (msg)
 	{
@@ -568,7 +568,7 @@ int __cdecl wndprog_get_text(wchar_t *s,uchar *mask,int *select,struct t_table *
 		case 1:
 			if (pline->type & PROG_TYPE_COMMENT)
 			{
-				ret = wsprintf(s, L"%s", &pline->command);
+				ret = wsprintf(s, L"%s", pline->command);
 				*select=DRAW_MASK;
 				memset(mask,DRAW_GRAY,ret);
 			}
@@ -790,13 +790,13 @@ bool editProgLine(t_wndprog_data *ppl)
 	wchar_t buffer[PROG_CMD_LEN]={0};
 	wstring s=ollylang->script[ppl->line-1];
 
-	wcscpy(buffer,(wchar_t*)w_trim(s).c_str());
+	wcscpy_s(buffer,(wchar_t*)w_trim(s).c_str());
 
 	if (Gettext(L"Edit script line...",buffer,0,0,FIXEDFONT) != -1) {
 
 		int lvl = ppl->type & PROG_ATTR_IFLEVELS;
-		wcscpy(ppl->command, L" ");
-		wcsncat(ppl->command, buffer, PROG_CMD_LEN-2);
+		wcscpy_s(ppl->command, L" ");
+		wcsncat_s(ppl->command, buffer, PROG_CMD_LEN-2);
 		s.assign(buffer);
 
 		ollylang->script.erase(ollylang->script.begin()+ppl->line-1);
@@ -868,10 +868,10 @@ int addProgLine(int line, wstring & command, int type)
 
 	pline.line = line;
 	pline.size = 1;
-	wcscpy(pline.command,L" ");
-	wcsncat(pline.command,command.c_str(),PROG_CMD_LEN-2);
-	wcscpy(pline.result,L"");
-	wcscpy(pline.values,L"");
+	wcscpy_s(pline.command,L" ");
+	wcsncat_s(pline.command,command.c_str(),PROG_CMD_LEN-2);
+	wcscpy_s(pline.result,L"");
+	wcscpy_s(pline.values,L"");
 
 	pline.type = type;
 
@@ -951,7 +951,7 @@ int setProgLineValue(int line, wstring  &value)
 		}
 	}
 
-	wcsncpy(ppl->values,values.c_str(),PROG_VAL_LEN-1);
+	wcsncpy_s(ppl->values,values.c_str(),PROG_VAL_LEN-1);
 
 	ppl->values[PROG_VAL_LEN-1] = 0;
 
@@ -1029,12 +1029,12 @@ int setProgLineResult(int line, wstring& result)
 	if (ppl->type & PROG_TYPE_LABEL)
 		return false;
 
-	wcsncpy(ppl->result,CleanString(result).c_str(),PROG_RES_LEN);
+	wcsncpy_s(ppl->result,CleanString(result).c_str(),PROG_RES_LEN);
 	if (wcscmp(ppl->values,L""))
 	{
 		if (ppl->values[0] != ',')
 		{
-			wcscpy(values,ppl->values);
+			wcscpy_s(values,ppl->values);
 			wcsncpy(&ppl->values[1],values,PROG_VAL_LEN-2);
 			ppl->values[0]=',';
 		}
@@ -1068,8 +1068,8 @@ void resetProgLines()
 		if ((ppl->type & PROG_TYPE_COMMAND)) //ignore labels/comments
 			ppl->type &= PROG_TYPE_COMMAND | PROG_ATTR_IFLEVELS;
 
-		wcscpy(ppl->result,L"");
-		wcscpy(ppl->values,L"");
+		wcscpy_s(ppl->result,L"");
+		wcscpy_s(ppl->values,L"");
 
 		//ppl->jumpto = 0;
 		ppl->eip = 0;

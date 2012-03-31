@@ -26,13 +26,12 @@ OllyLang::OllyLang()
 {
 	memset(&wndProg,0,sizeof(wndProg));
 	memset(&wndLog,0,sizeof(wndLog));
-	wcsncpy(wndLog.name,PLUGIN_NAME, SHORTNAME);
+	wcsncpy_s(wndLog.name,PLUGIN_NAME, SHORTNAME);
 	wndLog.mode=TABLE_SAVEALL;
 
 	script_state = SS_NONE;
 
 	// Init array with register names
-	reg_names.clear();
 	reg_names.insert(L"eax");
 	reg_names.insert(L"ebx");
 	reg_names.insert(L"ecx");
@@ -42,7 +41,6 @@ OllyLang::OllyLang()
 	reg_names.insert(L"esp");
 	reg_names.insert(L"ebp");
 	reg_names.insert(L"eip");
-//  new reg
 
 	reg_names.insert(L"ax");
 	reg_names.insert(L"bx");
@@ -62,7 +60,6 @@ OllyLang::OllyLang()
 	reg_names.insert(L"dh");
 
 	// Segments
-	seg_names.clear();
 	seg_names.insert(L"es");
 	seg_names.insert(L"cs");
 	seg_names.insert(L"ss");
@@ -71,7 +68,6 @@ OllyLang::OllyLang()
 	seg_names.insert(L"gs");
 
 	// Init array of flag names
-	flag_names.clear();
 	flag_names.insert(L"!CF");
 	flag_names.insert(L"!PF");
 	flag_names.insert(L"!AF");
@@ -85,7 +81,7 @@ OllyLang::OllyLang()
 	commands[L"ai"] = &OllyLang::DoAI;
 	commands[L"alloc"] = &OllyLang::DoALLOC;
 	commands[L"ana"] = &OllyLang::DoANA;
-	 commands[L"an"] = &OllyLang::DoANA;					//todo K_ANALYSE
+	commands[L"an"] = &OllyLang::DoANA;					//todo K_ANALYSE
 	commands[L"and"] = &OllyLang::DoAND;
 	commands[L"ao"] = &OllyLang::DoAO;
 	commands[L"ask"] = &OllyLang::DoASK;					//ok v2
@@ -130,7 +126,7 @@ OllyLang::OllyLang()
 //	commands[L"endsearch"] = &OllyLang::DoENDSEARCH;
 	commands[L"erun"] = &OllyLang::DoERUN;
 	commands[L"esti"] = &OllyLang::DoESTI;
-	 commands[L"esto"] = &OllyLang::DoERUN;
+	commands[L"esto"] = &OllyLang::DoERUN;
 	commands[L"estep"] = &OllyLang::DoESTEP;
 //	commands[L"eob"] = &OllyLang::DoEOB;
 //	commands[L"eoe"] = &OllyLang::DoEOE;
@@ -247,7 +243,7 @@ OllyLang::OllyLang()
 //	commands[L"setoption"] = &OllyLang::DoSETOPTION;
 //	commands[L"shl"] = &OllyLang::DoSHL;
 //	commands[L"shr"] = &OllyLang::DoSHR;
-	 commands[L"step"] = &OllyLang::DoSTO;
+	commands[L"step"] = &OllyLang::DoSTO;
 	commands[L"sti"] = &OllyLang::DoSTI;
 	commands[L"sto"] = &OllyLang::DoSTO;
 //	commands[L"str"] = &OllyLang::DoSTR;
@@ -278,7 +274,7 @@ OllyLang::OllyLang()
 
 	search_buffer=NULL;
 
-	hwmain = _hwollymain;
+	hwmain = hwollymain;
 	hwndinput = 0;
 
 	require_ollyloop = 0;
@@ -307,7 +303,6 @@ OllyLang::~OllyLang()
 	clearProgLines();
 	clearLogLines();
 	Reset();
-
 }
 
 bool OllyLang::Reset()
@@ -618,7 +613,7 @@ bool OllyLang::LoadBreakPoints(wstring fileName) {
 	Getfromini(NULL,PLUGIN_NAME, L"BP_FILE", L"%s", sbuffer);
 	s.assign((wchar_t*)sbuffer);
 
-	if (wcsicmp(fileName.c_str(),s.c_str())!=0)
+	if (_wcsicmp(fileName.c_str(),s.c_str())!=0)
 		return false;
 
 	int i,bpcnt=0,p;
@@ -636,7 +631,7 @@ bool OllyLang::LoadBreakPoints(wstring fileName) {
 		if (s!=L"") {
 
 			if ((p=s.find(L","))!=wstring::npos) {
-				swscanf(s.substr(0,p).c_str(),L"%u",&i);
+				swscanf_s(s.substr(0,p).c_str(),L"%u",&i);
 				s.erase(0,p+1);
 				ppl = (t_wndprog_data *) Getsortedbyselection(&wndProg.sorted,i);
 				if (ppl!=NULL) {
@@ -745,7 +740,7 @@ bool OllyLang::Step(int forceStep)
 		if(enable_logging)
 		{
 			wchar_t buffer[4096] = {0};
-			wsprintf(buffer, L"--> %d", codeLine);
+			wsprintf(buffer, L"--> %s", codeLine.c_str());
 			Addtolist(0, -1, buffer);
 		}
 
@@ -807,7 +802,8 @@ bool OllyLang::Step(int forceStep)
 		{
 			wstring message = L"Error on line ";
 			wchar_t buffer[32] = {0};
-			message.append(_itow(script_pos + 1, buffer, 10));
+			_itow_s(script_pos + 1, buffer, 10);
+			message.append(buffer);
 			message.append(L"\n");
 			message.append(L"Text: ");
 			message.append(script.at(script_pos));
@@ -891,8 +887,8 @@ bool OllyLang::ProcessAddonAction()
 		
 		block--;
 		if (block->free_at_eip == thr->reg.ip) {
-			HANDLE hDbgPrc = _process;
-			VirtualFreeEx(hDbgPrc, block->hmem, block->size, MEM_DECOMMIT);
+			HANDLE hDbgPrc = process;
+			VirtualFreeEx(hDbgPrc, block->hmem, block->size, MEM_DECOMMIT | MEM_RELEASE);
 			
 			//DbgMsgHex((ulong)block->hmem,"VirtualFreeEx");
 
@@ -1233,7 +1229,7 @@ bool OllyLang::CreateOperands(wstring &args, wstring ops[], uint len, bool prefe
 					result <<= dw;
 
 				wchar_t value[16];
-				_itow(result,value,16);
+				_itow_s(result,value,16);
 
 				ops[i]=value;
 
@@ -2038,7 +2034,7 @@ void OllyLang::menuListLabels(HMENU mLabels,int cmdIndex) {
 	
 	vector<HMENU>::iterator imenu;
 
-	char buffer[32];
+	//char buffer[32];
 	wstring str;
 
 	pair<wstring, int> p;
@@ -2104,13 +2100,13 @@ void OllyLang::menuListVariables(HMENU mVars,int cmdFirst) {
 
 			if (p.second.dw != 0) {
 				AppendMenu(menu,MF_SEPARATOR,0,L"-");
-				wcscpy(buffer,L"Follow in disassembler");
+				wcscpy_s(buffer,L"Follow in disassembler");
 				AppendMenu(menu,MF_STRING,CMD_POPUP_FDISASM + cmdIndex, buffer);
-				wcscpy(buffer,L"Follow in dump");
+				wcscpy_s(buffer,L"Follow in dump");
 				AppendMenu(menu,MF_STRING,CMD_POPUP_FDUMP   + cmdIndex, buffer);
-				wcscpy(buffer,L"Follow in stack");
+				wcscpy_s(buffer,L"Follow in stack");
 				AppendMenu(menu,MF_STRING,CMD_POPUP_FSTACK  + cmdIndex, buffer);
-				wcscpy(buffer,L"Open memory dump");
+				wcscpy_s(buffer,L"Open memory dump");
 				AppendMenu(menu,MF_STRING,CMD_POPUP_ODUMP   + cmdIndex, buffer);
 			}
 		}
@@ -2426,7 +2422,7 @@ wstring OllyLang::FormatAsmDwords(wstring asmLine)
 
 DWORD OllyLang::AddProcessMemoryBloc(wstring data, int mode)
 {
-	HANDLE hDebugee = _process;
+	HANDLE hDebugee = process;
 	DWORD pmem;
 
 	// Allocate memory for data
@@ -2437,7 +2433,7 @@ DWORD OllyLang::AddProcessMemoryBloc(wstring data, int mode)
 
 DWORD OllyLang::AddProcessMemoryBloc(int size, int mode)
 {
-	HANDLE hDebugee = _process;
+	HANDLE hDebugee = process;
 	DWORD pmem;
 
 	// Allocate memory for data
@@ -2448,12 +2444,12 @@ DWORD OllyLang::AddProcessMemoryBloc(int size, int mode)
 
 bool OllyLang::DelProcessMemoryBloc(DWORD address)
 {
-	HANDLE hDebugee = _process;
+	HANDLE hDebugee = process;
 
 	t_memory* tmem = Findmemory(address);
 
 	if (tmem!=NULL) {
-		VirtualFreeEx(hDebugee, (void*) tmem->base, tmem->size, MEM_DECOMMIT);
+		VirtualFreeEx(hDebugee, (void*) tmem->base, tmem->size, MEM_DECOMMIT | MEM_RELEASE);
 		return true;
 	}
 
@@ -2478,7 +2474,7 @@ bool OllyLang::ExecuteASM(wstring command)
 	t_thread* thr = Findthread(Getcputhreadid());
 	eip = thr->reg.ip;
 
-	HANDLE hDebugee = _process;
+	HANDLE hDebugee = process;
 
 	// Allocate memory for code
 	DWORD pmemexec = (DWORD) VirtualAllocEx(hDebugee, NULL, 0x1000, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
@@ -2582,14 +2578,14 @@ bool OllyLang::freeMemBlocks()
 {
 	if (!tMemBlocks.empty()) {
 
-		if (_process == NULL)
+		if (process == NULL)
 			return false;
 
 		vector<t_dbgmemblock>::iterator block = tMemBlocks.end();
 		while (tMemBlocks.size() > 0) {
 			block--;
 			if (block->autoclean)
-				VirtualFreeEx(_process,block->hmem,block->size,MEM_DECOMMIT);
+				VirtualFreeEx(process,block->hmem,block->size,MEM_DECOMMIT | MEM_RELEASE);
 			tMemBlocks.pop_back();
 		}
 

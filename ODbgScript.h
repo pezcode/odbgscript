@@ -22,9 +22,7 @@ extern t_menu mainmenu[];
 
 #define STRING_READSIZE 256
 
-extc HWND _export cdecl DebugScript(const char* const filename);
-
-
+extc _export HWND cdecl DebugScript(const char* const filename);
 
 //For unique vars btw processes
 //#pragma data_seg( ".GLOBALS" )

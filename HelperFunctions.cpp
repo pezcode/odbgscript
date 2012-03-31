@@ -34,7 +34,7 @@ DWORD getPluginDirectory(wstring &directory) {
 
 void MsgBox(wstring sMsg, wstring sTitle)
 {
-	HWND hw = _hwollymain;
+	HWND hw = hwollymain;
 	MessageBox(hw,sMsg.c_str(),sTitle.c_str(),MB_OK|MB_ICONEXCLAMATION|MB_TOPMOST|MB_SETFOREGROUND);
 }
 
@@ -42,7 +42,7 @@ void DbgMsg(int n,wchar_t* title)
 {
 #ifdef _DEBUG
 	wchar_t data[32];
-	HWND hw = _hwollymain;
+	HWND hw = hwollymain;
 	wsprintf(data, L"%d", n);
 	MessageBox(hw,data,title,MB_OK|MB_ICONEXCLAMATION|MB_TOPMOST|MB_SETFOREGROUND);
 #endif
@@ -52,7 +52,7 @@ void DbgMsg(int n,wstring title)
 {
 #ifdef _DEBUG
 	wchar_t data[32];
-	HWND hw = _hwollymain;
+	HWND hw = hwollymain;
 	wsprintf(data, L"%d", n);
 	MessageBox(hw,data,title.c_str(),MB_OK|MB_ICONEXCLAMATION|MB_TOPMOST);
 #endif
@@ -62,8 +62,8 @@ void DbgMsgHex(int n,wchar_t* title)
 {
 #ifdef _DEBUG
 	wchar_t data[32];
-	HWND hw = _hwollymain;
-	_itow( n, data, 16 );
+	HWND hw = hwollymain;
+	_itow_s( n, data, 16 );
 	MessageBox(hw,data,title,MB_OK|MB_ICONEXCLAMATION|MB_TOPMOST);
 #endif
 }
@@ -72,8 +72,8 @@ void DbgMsgHex(int n,wstring title)
 {
 #ifdef _DEBUG
 	wchar_t data[32];
-	HWND hw = _hwollymain;
-	_itow( n, data, 16 );
+	HWND hw = hwollymain;
+	_itow_s( n, data, 16 );
 	MessageBox(hw,data,title.c_str(),MB_OK|MB_ICONEXCLAMATION|MB_TOPMOST);
 #endif
 }
@@ -338,7 +338,7 @@ int Str2RgchWithWC(wstring &s, wchar_t* arr, uint size, wchar_t wc)
 long double strtof(wstring &s)
 {
 	long double result=0;
-	swscanf(s.c_str(),L"%lf",&result);
+	swscanf_s(s.c_str(),L"%lf",&result);
 	return result;
 }
 
@@ -436,7 +436,7 @@ bool SaveDump(wstring fileName, DWORD ep)
 	if(FixSect) {
 		for(i=0; i<(int)PEFileInfo.woNumOfSect; i++) 
 		{
-			strcpy((char *)(isech+i)->Name,(char *)(lpSectInfo+i)->byName);
+			memcpy((char *)(isech+i)->Name,(char *)(lpSectInfo+i)->byName, 8);
 			(isech+i)->Misc.VirtualSize = (lpSectInfo+i)->dwVSize;
 			(isech+i)->VirtualAddress   = (lpSectInfo+i)->dwVOffset;
 			(isech+i)->SizeOfRawData    = (lpSectInfo+i)->dwVSize;
@@ -445,7 +445,7 @@ bool SaveDump(wstring fileName, DWORD ep)
 		}
 	}
 
-	wcscpy( szFileName, fileName.c_str() );
+	wcscpy_s( szFileName, fileName.c_str() );
 	hFile = CreateFile(szFileName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if(hFile != INVALID_HANDLE_VALUE) 
 	{
@@ -466,7 +466,7 @@ bool GetPEInfo(DWORD ep)
 	PIMAGE_NT_HEADERS ipeh;
 	PIMAGE_SECTION_HEADER isech;
 	LPBYTE fbuf;
-	HWND hwmain=_hwollymain;
+	HWND hwmain=hwollymain;
 	DWORD dwFsiz,dwRsiz;
 	strCurEIP = ep;
 	DbgePath = _executable;
@@ -558,7 +558,7 @@ HWND FindHandle(DWORD dwThreadId, wstring wdwClass, long x, long y)
 	handle = ChildWindowFromPoint(handle,Point);
 	if (handle!=NULL) { 
  		GetClassName(handle,buffer,256); 
-		if (wcsnicmp(buffer,wdwClass.c_str(),wdwClass.length())==0) {
+		if (_wcsnicmp(buffer,wdwClass.c_str(),wdwClass.length())==0) {
 			return handle;
 		}
 	}	
@@ -714,7 +714,7 @@ BOOL str_filename_from_handle (HANDLE h_file, wstring &target_filename)
 {
 	wchar_t strbuf[256];
 	bool result;
-	result=get_filename_from_handle(h_file,strbuf);
+	result=get_filename_from_handle(h_file,strbuf) == TRUE;
 	target_filename.assign(strbuf);
 	return result;
 }
@@ -778,7 +778,7 @@ BOOL str_filename_from_handle2 (HANDLE h_file, wstring &target_filename)
 HWND GetODBGWindow(wstring &title, wstring &classname) {
 
 	HWND main, hwnd=0;
-	main = _hwclient; //(HWND) Plugingetvalue(VAL_HWCLIENT);
+	main = hwclient; //(HWND) Plugingetvalue(VAL_HWCLIENT);
 	hwnd = FindWindowEx(main,NULL,classname.c_str(),title.c_str());
 
 	return hwnd;
@@ -787,7 +787,7 @@ HWND GetODBGWindow(wstring &title, wstring &classname) {
 HWND GetODBGWindow(wchar_t * title, wchar_t * classname) {
 
 	HWND main, hwnd=0;
-	main = _hwclient; //(HWND) Plugingetvalue(VAL_HWCLIENT);
+	main = hwclient; //(HWND) Plugingetvalue(VAL_HWCLIENT);
 	hwnd = FindWindowEx(main,NULL,classname,title);
 
 	return hwnd;
@@ -841,7 +841,7 @@ stdapi (void)    Delayedtableredraw(t_table *pt);
 void Sendshortcut(ulong win,ulong addr,int msg,int ctrl,int shift,int vkcode) {
 	//WM_SYSKEYDOWN
 	LPARAM lp=0;
-	HWND hw = _hwollymain;
+	HWND hw = hwollymain;
 	switch (win) {
 		case PM_MAIN:
 			SendMessageA(hw,(DWORD) msg,(WPARAM) vkcode, lp);

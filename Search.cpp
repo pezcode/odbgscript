@@ -48,7 +48,7 @@ int FindWithWildcards(const wchar_t* source, const wchar_t* findstring, size_t l
 	{
 		for(int j = 0; j < findlen; j++)
 		{
-			wcsncpy(cmp, findstring + j * 2, 2);
+			wcsncpy_s(cmp, findstring + j * 2, 2);
 			if(!CompareChar(source[i+j], cmp))
 				break;
 			else if(j == (findlen - 1))
@@ -67,7 +67,7 @@ wchar_t * HexString2BinArray(const wchar_t * s)
 	int i=0;
 	while (wcslen(s))
 	{
-		wcsncpy(HexBuf,s,2);
+		wcsncpy_s(HexBuf,s,2);
 		HexBuf[2]=0;
 		result[i]=(wchar_t)wcstoul(HexBuf,0,16);
 		i++;
@@ -107,9 +107,9 @@ wchar_t WildSymbolToChar(const wchar_t* x)
 char HexString2BinChar(const wchar_t *s)
 {
 	wchar_t HexBuf[3];
-	wcsncpy(HexBuf,s,2);
+	wcsncpy_s(HexBuf,s,2);
 	HexBuf[2]=0;
-	return (wchar_t)wcstoul(HexBuf,0,16);	
+	return (char)wcstoul(HexBuf,0,16);	
 }
 
 bool Replace(wchar_t * s, const wchar_t * searchstr, const wchar_t * replstring, size_t length)
