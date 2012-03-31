@@ -1,8 +1,9 @@
+#include "ODbgScript.h"
+
 #include <windows.h>
 #include "ollydbg201.h"
 #include "version.h"
 #include "OllyLang.h"
-#include "mru.h"
 
 #include "HelperFunctions.h"
 
@@ -10,7 +11,7 @@ HINSTANCE hinst;
 
 const int MINOLLYDBGVERSION = 201;
 
-wchar_t buff[65535] = {0}; // Temp storage
+//wchar_t buff[65535] = {0}; // Temp storage
 
 int script_state = SS_NONE; // Script state
 
@@ -22,7 +23,9 @@ bool dbgfocus = false;
 
 void* pmemforexec;
 
-t_menu* cpu_menu = 0;
+vector<t_menu> cpu_menu;
+
+MRU mru(10);
 
 int Mrunscript(t_table* pt, wchar_t* name, ulong index, int mode);
 int Mscriptwindow(t_table* pt, wchar_t* name, ulong index, int mode);
@@ -30,6 +33,14 @@ int Mlogwindow(t_table* pt, wchar_t* name, ulong index, int mode);
 int Mhelp(t_table* pt, wchar_t* name, ulong index, int mode);
 int Mabout(t_table* pt, wchar_t* name, ulong index, int mode);
 int Mcommand(t_table* pt, wchar_t* name, ulong index, int mode);
+
+int Mstep(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mpause(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mresume(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mabort(t_table* pt, wchar_t* name, ulong index, int mode);
+int Medit(t_table* pt, wchar_t* name, ulong index, int mode);
+
+int Mmru(t_table* pt, wchar_t* name, ulong index, int mode);
 
 BOOL APIENTRY DllMain(HINSTANCE hi, DWORD reason, LPVOID reserved)
 {
@@ -191,7 +202,7 @@ int ODBG_Pausedex(int reasonex, int dummy, t_reg* reg, DEBUG_EVENT* debugevent)
 	return 0;
 }
 
-t_menu* build_cpu_menu()
+vector<t_menu> build_cpu_menu()
 {
 	/*
 	wcscpy_s(buff, L"# Run Scri&pt{0 Open...|");
@@ -212,31 +223,83 @@ t_menu* build_cpu_menu()
 			);
 	*/
 
-	t_menu fixed[] =
+	t_menu top_menu[] =
 	{
 		{
-			L"Test",
-			L"Testiiiiiiii",
-			K_NONE, Mabout, NULL, 0
-		}	
+			L"Run Scri&pt",
+			NULL,
+			K_NONE, NULL, NULL/*sub*/, 0
+		},
+
+		{
+			L"Script &Functions",
+			NULL,
+			K_NONE, NULL, NULL/*sub*/, 0
+		}
 	};
 
-	t_menu* mru = 0;
+	vector<t_menu> mru_menu = mru.build_menu(Mmru);
+
+	t_menu functions_menu[] =
+	{
+		{
+			L"Script &Window",
+			NULL,
+			K_NONE, Mscriptwindow, NULL, 0
+		},
+
+		{
+			L"Script &Log",
+			NULL,
+			K_NONE, Mlogwindow, NULL, 0
+		},
+
+		{
+			L"|Step",
+			NULL,
+			K_NONE, Mstep, NULL, 0
+		},
+
+		{
+			L"Pause",
+			NULL,
+			K_NONE, Mpause, NULL, 0
+		},
+
+		{
+			L"Resume",
+			NULL,
+			K_NONE, Mresume, NULL, 0
+		},
+
+		{
+			L"Abort",
+			NULL,
+			K_NONE, Mabort, NULL, 0
+		},
+
+		{
+			L"Edit Script",
+			NULL,
+			K_NONE, Medit, NULL, 0
+		}
+	};
 
 	const t_menu empty = { NULL, NULL, K_NONE, NULL, NULL, 0 };
 
-	unsigned int fixed_count = _countof(fixed);
-	unsigned int mru_count = 0;
+	vector<t_menu> menu;
 
-	unsigned int items = fixed_count + mru_count + 1;
+	menu.insert(menu.end(), top_menu, top_menu + _countof(top_menu));
+	menu.insert(menu.end(), empty);
+	menu.insert(menu.end(), mru_menu.begin(), mru_menu.end());
+	menu.insert(menu.end(), empty);
+	menu.insert(menu.end(), functions_menu, functions_menu + _countof(functions_menu));
+	menu.insert(menu.end(), empty);
 
-	t_menu* buf = new t_menu[items];
+	menu[0].submenu = &menu[_countof(top_menu) + 1];
+	menu[1].submenu = &menu[0].submenu[mru_menu.size() + 1];
 
-	copy(fixed, fixed + _countof(fixed), buf);
-	//copy(mru, mru + mru_count, buf + _countof(fixed));
-	buf[items - 1] = empty;
-
-	return buf;
+	return menu;
 }
 
 extc int _export cdecl ExecuteScript(const char* filename)
@@ -264,6 +327,7 @@ extc HWND _export cdecl DebugScript(const char* filename)
 }
 
 // Old Pluginaction
+/*
 void ODBG_Pluginaction(int origin, int action, void* item)
 {
 	HINSTANCE hinst  = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
@@ -312,7 +376,7 @@ void ODBG_Pluginaction(int origin, int action, void* item)
 			break;
 
 		case 1: // Abort
-			MessageBox(hwmain, L"Script aborted!", PLUGIN_NAME, MB_OK | MB_ICONEXCLAMATION );
+			MessageBox(hwmain, L"Script aborted!", PLUGIN_NAME, MB_OK | MB_ICONEXCLAMATION);
 			ollylang->Reset();
 			ollylang->Pause();
 			break;
@@ -356,7 +420,7 @@ void ODBG_Pluginaction(int origin, int action, void* item)
 			// Load script
 			ollylang->LoadScript(buff);
 
-			mruAddFile(buff);
+			mru.add(buff);
 
 			// Save script directory
 			wchar_t* buf2;
@@ -414,22 +478,25 @@ void ODBG_Pluginaction(int origin, int action, void* item)
 //			Readmemory(buffer, addr, 4, MM_RESTORE);
 //			cout << hex << &buffer;
 
-		/*
-		HMODULE hMod = GetModuleHandle("OllyScript.dll");
-		if(hMod) // Check that the other plugin is present and loaded
-		{
-			// Get address of exported function
-			int (*pFunc)(char*) = (int (*)(char*)) GetProcAddress(hMod, "ExecuteScript");
-			if(pFunc) // Check that the other plugin exports the correct function
-				pFunc("xxx"); // Execute exported function
-		}
+		
+		//HMODULE hMod = GetModuleHandle("OllyScript.dll");
+		//if(hMod) // Check that the other plugin is present and loaded
+		//{
+		//	// Get address of exported function
+		//	int (*pFunc)(char*) = (int (*)(char*)) GetProcAddress(hMod, "ExecuteScript");
+		//	if(pFunc) // Check that the other plugin exports the correct function
+		//		pFunc("xxx"); // Execute exported function
+		//}
 
-		cout << hex << hMod << endl;*/
+		cout << hex << hMod << endl;
+
 		//403008 401035
-		/*DWORD pid = Plugingetvalue(VAL_PROCESSID);
-		DebugSetProcessKillOnExit(FALSE);
-		DebugActiveProcessStop(pid);
-		break;*/
+		
+//DWORD pid = Plugingetvalue(VAL_PROCESSID);
+		//DebugSetProcessKillOnExit(FALSE);
+		//DebugActiveProcessStop(pid);
+		//break;
+
 		//t_module* mod = Findmodule(0x401000);
 		//cout << hex << mod->codebase;
 
@@ -441,6 +508,7 @@ void ODBG_Pluginaction(int origin, int action, void* item)
 			break;
 	}
 }
+*/
 
 int ODBG_Pluginshortcut(int origin, int ctrl, int alt, int shift, int key, void* item)
 {
@@ -543,7 +611,7 @@ int Mrunscript(t_table* pt, wchar_t* name, ulong index, int mode)
 			return MENU_NORMAL;
 
 		case MENU_EXECUTE:
-			ODBG_Pluginaction(PM_MAIN, 0, NULL);
+			//ODBG_Pluginaction(PM_MAIN, 0, NULL);
 			return MENU_NOREDRAW;
 
 		default:
@@ -666,6 +734,308 @@ int Mcommand(t_table* pt, wchar_t* name, ulong index, int mode)
 	}
 }
 
+int Mmru(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
+			{
+				wstring file = mru.get(index);
+				// Load script
+				ollylang->LoadScript(file.c_str());
+
+				mru.add(file); // Push to front
+
+				// Save script directory
+				wchar_t buff[MAX_PATH];
+				wchar_t* buf2;
+				GetFullPathName(buff, _countof(buff), buff, &buf2);
+				*buf2 = 0;
+				Pluginwritestringtoini(hinst, L"ScriptDir", buff);
+
+				ollylang->Resume();
+				if (ollylang->wndProg.hw)
+				{
+					SetForegroundWindow(ollylang->wndProg.hw);
+					SetFocus(ollylang->wndProg.hw);
+				}
+			}
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
+/*
+void ODBG_Pluginaction(int origin, int action, void* item)
+{
+	HINSTANCE hinst  = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
+	HWND      hwmain = hwollymain;
+	OPENFILENAME ofn = {0};
+	switch (action)
+	{
+		case 0: // Run script
+			// common dialog box structure
+			wchar_t szFile[260];       // buffer for file name
+
+			// Initialize OPENFILENAME
+			//ZeroMemory(&ofn, sizeof(ofn));
+			ofn.lStructSize = sizeof(ofn);
+			ofn.hwndOwner = hwmain;
+			ofn.lpstrFile = szFile;
+			//
+			// Set lpstrFile[0] to '\0' so that GetOpenFileName does not
+			// use the contents of szFile to initialize itself.
+			//
+			ofn.lpstrFile[0] = '\0';
+			ofn.nMaxFile = sizeof(szFile);
+			ofn.lpstrFilter = L"Olly Scripts\0*.osc;*.txt\0All\0*.*\0";
+			ofn.nFilterIndex = 1;
+			ofn.lpstrFileTitle = NULL;
+			ofn.nMaxFileTitle = 0;
+			Getfromini(NULL, PLUGIN_NAME, L"ScriptDir", L"%s", buff);
+			ofn.lpstrInitialDir = buff;
+			ofn.lpstrTitle = L"Select Script";
+			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+
+			// Display the Open dialog box.
+			if (GetOpenFileName(&ofn) == TRUE) //Comdlg32.lib
+			{
+				// Load script
+				ollylang->LoadScript(ofn.lpstrFile);
+				if (ollylang->wndProg.hw)
+				{
+					SetForegroundWindow(ollylang->wndProg.hw);
+					SetFocus(ollylang->wndProg.hw);
+				}
+				// Start script
+				ollylang->Resume();
+			}
+			break;
+
+		case 1: // Abort
+			MessageBox(hwmain, L"Script aborted!", PLUGIN_NAME, MB_OK | MB_ICONEXCLAMATION);
+			ollylang->Reset();
+			ollylang->Pause();
+			break;
+
+		case 2: // Pause
+			ollylang->Pause();
+			break;
+
+		case 3: // Resume
+			ollylang->Resume();
+			break;
+
+		case 4: // Step
+			ollylang->Step(1);
+			script_state = ollylang->script_state;
+			break;
+
+		case 5: // Force Pause (like Pause Key)
+			focusonstop = 4;
+			ollylang->Pause();
+			script_state = ollylang->script_state;
+			break;
+
+		case 21: // MRU List in CPU Window
+		case 22:
+		case 23:
+		case 24:
+		case 25:
+		case 26:
+		case 27:
+		case 28:
+		case 29:
+		{
+			action -= 20;
+			wchar_t key[5] = L"NRU ";
+			key[3] = action + 0x30;
+
+			ZeroMemory(&buff, sizeof(buff));
+			Getfromini(NULL, PLUGIN_NAME, key, L"%s", buff);
+
+			// Load script
+			ollylang->LoadScript(buff);
+
+			mru.add(buff);
+
+			// Save script directory
+			wchar_t* buf2;
+			GetFullPathName(buff, _countof(buff), buff, &buf2);
+			*buf2 = 0;
+			Pluginwritestringtoini(hinst, L"ScriptDir", buff);
+
+			ollylang->Resume();
+			if (ollylang->wndProg.hw)
+			{
+				SetForegroundWindow(ollylang->wndProg.hw);
+				SetFocus(ollylang->wndProg.hw);
+			}
+
+			break;
+		}
+		case 30:
+		{
+			initProgTable();
+			break;
+		}
+		case 31:
+		{
+			initLogWindow();
+			break;
+		}
+		case 32: // Edit Script
+		{
+			HWND hw = hwollymain;
+			ShellExecute(hw, L"open", ollylang->scriptpath.c_str(), NULL, ollylang->currentdir.c_str(), SW_SHOWDEFAULT);
+			break;
+		}
+		case 11:
+		{
+//			string x = "Hej";
+//			string y = ToLower(x);
+//			__asm nop;
+		}
+		case 12:
+		{
+//			Broadcast(WM_USER_CHGALL, 0, 0);
+		}
+//			t_thread* thr = Findthread(Getcputhreadid());
+//			byte buffer[4];
+//			ulong fs = thr->reg.limit[2]; // BUG IN ODBG!!!
+//			fs += 0x30;
+//			Readmemory(buffer, fs, 4, MM_RESTORE);
+//			fs = *((ulong*)buffer);
+//			fs += 2;
+//			buffer[0] = 0;
+//			Writememory(buffer, fs, 1, MM_RESTORE);
+//			cout << endl;
+
+//			ulong addr = t->reg.s[SEG_FS];
+//			Readmemory(buffer, addr, 4, MM_RESTORE);
+//			cout << hex << &buffer;
+
+		
+		//HMODULE hMod = GetModuleHandle("OllyScript.dll");
+		//if(hMod) // Check that the other plugin is present and loaded
+		//{
+		//	// Get address of exported function
+		//	int (*pFunc)(char*) = (int (*)(char*)) GetProcAddress(hMod, "ExecuteScript");
+		//	if(pFunc) // Check that the other plugin exports the correct function
+		//		pFunc("xxx"); // Execute exported function
+		//}
+
+		cout << hex << hMod << endl;
+
+		//403008 401035
+		
+//DWORD pid = Plugingetvalue(VAL_PROCESSID);
+		//DebugSetProcessKillOnExit(FALSE);
+		//DebugActiveProcessStop(pid);
+		//break;
+
+		//t_module* mod = Findmodule(0x401000);
+		//cout << hex << mod->codebase;
+
+		//cout << hex << mod->codebase;
+
+		break;
+
+		default:
+			break;
+	}
+}
+*/
+
+int Mstep(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
+			ollylang->Step(1);
+			script_state = ollylang->script_state;
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
+int Mpause(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
+			ollylang->Pause();
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
+int Mresume(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
+			ollylang->Resume();
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
+int Mabort(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
+			MessageBox(hwollymain, L"Script aborted!", PLUGIN_NAME, MB_OK | MB_ICONEXCLAMATION);
+			ollylang->Reset();
+			ollylang->Pause();
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
+int Medit(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
+			ShellExecute(hwollymain, L"open", ollylang->scriptpath.c_str(), NULL, ollylang->currentdir.c_str(), SW_SHOWDEFAULT);
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
 /**
  * Plugin menu that will appear in the main OllyDbg menu. Note that this menu
  * must be static and must be kept for the whole duration of the debugging
@@ -727,9 +1097,8 @@ t_menu* ODBG2_Pluginmenu(wchar_t* type)
 		return mainmenu;
 	else if(wcscmp(type, PWM_DISASM) == 0)
 	{
-		delete cpu_menu;
 		cpu_menu = build_cpu_menu();
-		return cpu_menu;
+		return cpu_menu.data();
 	}
 	else
 		return NULL; // No menu
@@ -796,6 +1165,12 @@ int ODBG2_Pluginquery(int ollydbgversion, wchar_t pluginname[SHORTNAME], wchar_t
 	// Report plugin in the log window.
 	Addtolist(0, 0, PLUGIN_NAME L" v%i.%i.%i " VERSIONCOMPILED, VERSIONHI, VERSIONLO, VERSIONST);
 	Addtolist(0, 0, L"  http://odbgscript.sf.net");
+
+	mru.load();
+
+	mru.add(L"C:\\Program Files (x86)\\RE\\Olly 2\\Plugins\\Test1.txt");
+	mru.add(L"C:\\Program Files (x86)\\RE\\Olly 2\\Plugins\\Test2.txt");
+	mru.add(L"C:\\Program Files (x86)\\RE\\Olly 2\\Plugins\\Test3.txt");
 
 	ollylang = new OllyLang();
 
@@ -910,6 +1285,8 @@ int ODBG2_Pluginclose()
 	Writetoini(NULL, PLUGIN_NAME, L"Restore Script window", L"%i", (ollylang->wndProg.hw != NULL));
 	Writetoini(NULL, PLUGIN_NAME, L"Restore Script Log", L"%i", (ollylang->wndLog.hw != NULL));
 
+	mru.save();
+
 	return 0;
 }
 
@@ -919,7 +1296,6 @@ int ODBG2_Pluginclose()
 void ODBG2_Plugindestroy()
 {
 	delete ollylang;
-	delete cpu_menu;
 	//Unregisterpluginclass(wndprogclass);
 	//Unregisterpluginclass(wndlogclass);
 }

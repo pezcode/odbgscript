@@ -695,7 +695,7 @@ bool OllyLang::LoadScript(wstring file)
 	ParseLabels();
 
 	Writetoini(NULL, PLUGIN_NAME, L"ScriptDir", (wchar_t*) file.c_str());
-	mruAddFile(file);
+	mru.add(file);
 
 	pgr_scriptpos = GetFirstCodeLine(0) + 1;
 	setProgLineEIP(pgr_scriptpos, 0);

@@ -18,6 +18,8 @@ using std::wstring;
 typedef unsigned int uint;
 //typedef unsigned char BYTE;
 
+#define STRING_READSIZE 256
+
 enum {SS_NONE, SS_INITIALIZED, SS_LOADED, SS_RUNNING, SS_PAUSED};
 
 using namespace std;
