@@ -16,24 +16,27 @@ using std::transform;
 // set) and different custom messages WM_USER_xxx (depending on table type).
 // See documentation for details.
 
-long cdecl wndlog_func(t_table *pt,HWND hw,UINT msg,WPARAM wp,LPARAM lp) {
-  t_logwnd_data *pmark;
-  wchar_t wbuf[30];
-  _itow_s(msg,wbuf,16);
-  Addtolist(msg,0,wbuf);
-  switch (msg) {
-    case WM_USER_DBLCLK:               // Doubleclick
-      // Get selection.
-      pmark=(t_logwnd_data *)Getsortedbyselection(
-        &ollylang->wndLog.sorted,ollylang->wndLog.sorted.selected);
-      // Follow address in CPU Disassembler pane. Actual address is added to
-      // the history, so that user can easily return back to it.
-      if (pmark!=NULL) Setcpu(0,pmark->eip,0,0,0,
-        CPU_ASMHIST|CPU_ASMCENTER|CPU_ASMFOCUS);
-      return 1;
-    default: break;
-  };
-  return 0;
+long cdecl wndlog_func(t_table* pt, HWND hw, UINT msg, WPARAM wp, LPARAM lp)
+{
+	t_logwnd_data* pmark;
+	wchar_t wbuf[30];
+	_itow_s(msg, wbuf, 16);
+	Addtolist(msg, 0, wbuf);
+	switch (msg)
+	{
+		case WM_USER_DBLCLK:               // Doubleclick
+			// Get selection.
+			pmark = (t_logwnd_data*)Getsortedbyselection(
+			            &ollylang->wndLog.sorted, ollylang->wndLog.sorted.selected);
+			// Follow address in CPU Disassembler pane. Actual address is added to
+			// the history, so that user can easily return back to it.
+			if (pmark != NULL) Setcpu(0, pmark->eip, 0, 0, 0,
+				                          CPU_ASMHIST | CPU_ASMCENTER | CPU_ASMFOCUS);
+			return 1;
+		default:
+			break;
+	};
+	return 0;
 };
 
 /*
@@ -71,7 +74,7 @@ int i,shiftkey,controlkey;
 		case WM_USER_MENU:
 			menu=CreatePopupMenu();
 
-//			AppendMenu(menu,MF_SEPARATOR,0,L"-"); 
+//			AppendMenu(menu,MF_SEPARATOR,0,L"-");
 
 			pll=(t_logwnd_data *)Getsortedbyselection(&(ollylang->wndLog.sorted),ollylang->wndLog.sorted.selected);
 			if (menu!=NULL && pll!=NULL) {
@@ -83,7 +86,7 @@ int i,shiftkey,controlkey;
 			i=Tablefunction(&ollylang->wndLog,hw,WM_USER_MENU,0,(LPARAM)menu);
 
 			if (menu!=NULL) DestroyMenu(menu);
-			switch (i) { 
+			switch (i) {
 				case 10:
 					clearLogLines();
 					InvalidateRect(hw, NULL, FALSE);
@@ -127,9 +130,9 @@ int i,shiftkey,controlkey;
 					InvalidateRect(hw, NULL, FALSE);
 				}
 				return 1;
-			} 
+			}
 			else if (wp=='F' && controlkey) //Search
-			{				
+			{
 				wchar_t buffer[TEXTLEN]={0};
 				Findname(1,NM_SOURCE,buffer);
 				i = Gettext(L"Search in log...",buffer,0,NM_SOURCE,FIXEDFONT);
@@ -160,73 +163,80 @@ int i,shiftkey,controlkey;
 }
 */
 
-void initLogWindow() {
+void initLogWindow()
+{
 
 	HINSTANCE hinst;
 
-  	if (ollylang->wndLog.bar.nbar==0) {
+	if (ollylang->wndLog.bar.nbar == 0)
+	{
 
-    ollylang->wndLog.bar.visible=1;
+		ollylang->wndLog.bar.visible = 1;
 
-	ollylang->wndLog.bar.name[0]=L"Address";
-	ollylang->wndLog.bar.expl[0]=L"Address";
-    ollylang->wndLog.bar.mode[0]=BAR_NOSORT;
-    ollylang->wndLog.bar.defdx[0]=9;
+		ollylang->wndLog.bar.name[0] = L"Address";
+		ollylang->wndLog.bar.expl[0] = L"Address";
+		ollylang->wndLog.bar.mode[0] = BAR_NOSORT;
+		ollylang->wndLog.bar.defdx[0] = 9;
 
-	ollylang->wndLog.bar.name[1]=L"Message";
-	ollylang->wndLog.bar.expl[1]=L"Message"; 
-    ollylang->wndLog.bar.mode[1]=BAR_NOSORT;
-    ollylang->wndLog.bar.defdx[1]=130;
+		ollylang->wndLog.bar.name[1] = L"Message";
+		ollylang->wndLog.bar.expl[1] = L"Message";
+		ollylang->wndLog.bar.mode[1] = BAR_NOSORT;
+		ollylang->wndLog.bar.defdx[1] = 130;
 
-	ollylang->wndLog.bar.nbar=2;
-    ollylang->wndLog.mode=TABLE_SAVEALL; //TABLE_COPYMENU|TABLE_APPMENU|TABLE_SAVEPOS|TABLE_ONTOP|TABLE_HILMENU;
-    ollylang->wndLog.drawfunc = wndlog_get_text;
-	ollylang->wndLog.tabfunc  = wndlog_func;
-	ollylang->wndLog.custommode=0;
-	ollylang->wndLog.customdata=NULL;
-	ollylang->wndLog.updatefunc=NULL;
-	ollylang->wndLog.tableselfunc=NULL;
+		ollylang->wndLog.bar.nbar = 2;
+		ollylang->wndLog.mode = TABLE_SAVEALL; //TABLE_COPYMENU|TABLE_APPMENU|TABLE_SAVEPOS|TABLE_ONTOP|TABLE_HILMENU;
+		ollylang->wndLog.drawfunc = wndlog_get_text;
+		ollylang->wndLog.tabfunc  = wndlog_func;
+		ollylang->wndLog.custommode = 0;
+		ollylang->wndLog.customdata = NULL;
+		ollylang->wndLog.updatefunc = NULL;
+		ollylang->wndLog.tableselfunc = NULL;
 
-	ollylang->wndLog.menu = mainmenu;
+		ollylang->wndLog.menu = mainmenu;
 
-	//hinst = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
-	hinst = hollyinst;
-	Createtablewindow(&(ollylang->wndLog),0,2,hinst,L"ICO_L",PLUGIN_NAME); //L"Script Log Window"
+		//hinst = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
+		hinst = hollyinst;
+		Createtablewindow(&(ollylang->wndLog), 0, 2, hinst, L"ICO_L", PLUGIN_NAME); //L"Script Log Window"
 
 	}
 
 	//1. Quicktablewindow(&ollylang->wndLog,15,2,wndlogclass,L"Script Log Window");
 
-	if (ollylang->wndLog.hw) {
-    	Activatetablewindow(&ollylang->wndLog);
+	if (ollylang->wndLog.hw)
+	{
+		Activatetablewindow(&ollylang->wndLog);
 		hinst = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
-		HICON ico=LoadIcon(hinst,MAKEINTRESOURCE(IDI_ICON_LOG)); 
-		SendMessage(ollylang->wndLog.hw,WM_SETICON,false,(long)ico);
+		HICON ico = LoadIcon(hinst, MAKEINTRESOURCE(IDI_ICON_LOG));
+		SendMessage(ollylang->wndLog.hw, WM_SETICON, false, (long)ico);
 	}
 }
 
-int cdecl wndlog_sort_function(const t_sorthdr *sh1,const t_sorthdr *sh2,const int n) {
-	t_wndlog_data *lline1 = (t_wndlog_data *)sh1;
-	t_wndlog_data *lline2 = (t_wndlog_data *)sh2;
+int cdecl wndlog_sort_function(const t_sorthdr* sh1, const t_sorthdr* sh2, const int n)
+{
+	t_wndlog_data* lline1 = (t_wndlog_data*)sh1;
+	t_wndlog_data* lline2 = (t_wndlog_data*)sh2;
 
-	if (lline1->line > lline2->line) 
+	if (lline1->line > lline2->line)
 		return 1;
-	else if (lline1->line < lline2->line) 
+	else if (lline1->line < lline2->line)
 		return -1;
 	return 0;
 }
 
 // destructor
-void cdecl wndlog_dest_function(t_sorthdr *p) {
+void cdecl wndlog_dest_function(t_sorthdr* p)
+{
 }
 
 // drawfunc
-int cdecl wndlog_get_text(wchar_t *s,uchar *mask,int *select,struct t_table *pt, t_sorthdr *ph,int column,void *cache) {
+int cdecl wndlog_get_text(wchar_t* s, uchar* mask, int* select, struct t_table* pt, t_sorthdr* ph, int column, void* cache)
+{
 
-	int ret=0;
-	t_wndlog_data *lline;
+	int ret = 0;
+	t_wndlog_data* lline;
 
-	switch (column) {
+	switch (column)
+	{
 
 		case DF_CACHESIZE:                 // Request for draw cache size
 			// Columns 3 and 4 (disassembly and comment) both require calls to
@@ -257,50 +267,55 @@ int cdecl wndlog_get_text(wchar_t *s,uchar *mask,int *select,struct t_table *pt,
 			return 0;
 
 		case 0:
-			lline = (t_wndlog_data *)ph;
-			ret = Simpleaddress(s,lline->eip,mask,select);
+			lline = (t_wndlog_data*)ph;
+			ret = Simpleaddress(s, lline->eip, mask, select);
 			break;
 		case 1:
-			lline = (t_wndlog_data *)ph;
+			lline = (t_wndlog_data*)ph;
 			ret = wsprintf(s, L"%s", lline->message);
 			break;
 	}
 	return ret;
 }
 
-void clearLogLines() {
+void clearLogLines()
+{
 
-	if (!ollylang->tLogLines.empty()) {
-		Deletesorteddatarange(&(ollylang->wndLog.sorted),0,0xffffffff);
+	if (!ollylang->tLogLines.empty())
+	{
+		Deletesorteddatarange(&(ollylang->wndLog.sorted), 0, 0xffffffff);
 		ollylang->tLogLines.clear();
-		if (ollylang->wndLog.hw!=NULL)	InvalidateRect(ollylang->wndLog.hw, NULL, FALSE);
+		if (ollylang->wndLog.hw != NULL)	InvalidateRect(ollylang->wndLog.hw, NULL, FALSE);
 	}
 }
 
-int add2log(wchar_t* message) {
+int add2log(wchar_t* message)
+{
 
-	t_dump *cpuasm;
-	t_wndlog_data lline={0};
-	
+	t_dump* cpuasm;
+	t_wndlog_data lline = {0};
+
 	cpuasm = Getcpudisasmdump();
 
-	lline.line = ollylang->tLogLines.size()+1;
+	lline.line = ollylang->tLogLines.size() + 1;
 	lline.eip = cpuasm->sel0;
 	lline.size = 1;
-	wcsncpy_s(lline.message,message,LOG_MSG_LEN-1);
+	wcsncpy_s(lline.message, message, LOG_MSG_LEN - 1);
 
 	ollylang->tLogLines.push_back(lline);
 
-	Addsorteddata(&(ollylang->wndLog.sorted),&(ollylang->tLogLines.back()));
+	Addsorteddata(&(ollylang->wndLog.sorted), &(ollylang->tLogLines.back()));
 
-	if (ollylang->wndLog.hw!=NULL) {
-		Selectandscroll(&ollylang->wndLog,lline.line-1,2);
+	if (ollylang->wndLog.hw != NULL)
+	{
+		Selectandscroll(&ollylang->wndLog, lline.line - 1, 2);
 		InvalidateRect(ollylang->wndLog.hw, NULL, FALSE);
 	}
 	return 1;
 }
 
-int add2log(wstring & message) {
+int add2log(wstring& message)
+{
 
 	wstring s;
 	vector<wstring> v;
@@ -308,18 +323,20 @@ int add2log(wstring & message) {
 
 	if (split(v, message, '\n'))
 	{
-		for (i=0;i<v.size();i++) {
+		for (i = 0; i < v.size(); i++)
+		{
 			add2log((wchar_t*)v[i].c_str());
 		}
 		return 1;
-	} 
+	}
 	else
 		return add2log((wchar_t*)message.c_str());
 
 }
 
-int add2logMasked(wchar_t* message,wchar_t* mask) {
-return 1;
+int add2logMasked(wchar_t* message, wchar_t* mask)
+{
+	return 1;
 }
 
 int SearchInLog(wstring text, ulong fromPos)
@@ -329,19 +346,22 @@ int SearchInLog(wstring text, ulong fromPos)
 	int loc = 0;
 	bool oneTime = true;
 
-	int (*pf)(int) = tolower; 
+	int (*pf)(int) = tolower;
 	transform(text.begin(), text.end(), text.begin(), pf);
 
-	SearchFromLogStart:
+SearchFromLogStart:
 	iter = ollylang->tLogLines.begin();
 
 	while(iter != ollylang->tLogLines.end())
 	{
-		if (loc >= fromPos) {
+		if (loc >= fromPos)
+		{
 			s.assign(iter->message);
 			transform(s.begin(), s.end(), s.begin(), pf);
-			if(s.length() > 0) {
-				if(s.find(text) != wstring::npos) {
+			if(s.length() > 0)
+			{
+				if(s.find(text) != wstring::npos)
+				{
 					return loc;
 				}
 			}
@@ -349,8 +369,10 @@ int SearchInLog(wstring text, ulong fromPos)
 		iter++;
 		loc++;
 	}
-	if (fromPos > 0 && oneTime) {
-		fromPos = 0; loc = 0;
+	if (fromPos > 0 && oneTime)
+	{
+		fromPos = 0;
+		loc = 0;
 		oneTime = false;
 		goto SearchFromLogStart;
 	}

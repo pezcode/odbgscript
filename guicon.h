@@ -1,17 +1,17 @@
 #pragma once
 
 #ifdef _DEBUG
-	#ifndef __GUICON_H__
+#ifndef __GUICON_H__
 
-	#define __GUICON_H__
+#define __GUICON_H__
 
 
 
-	//#include "stdafx.h"
+//#include "stdafx.h"
 
-		void RedirectIOToConsole();
+void RedirectIOToConsole();
 
-	#endif
+#endif
 
 #endif
 

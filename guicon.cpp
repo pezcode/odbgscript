@@ -1,6 +1,6 @@
 #ifdef _DEBUG
 
-#include <windows.h>	
+#include <windows.h>
 #include <io.h>		//_open_osfhandle
 #include <fcntl.h>	//_O_TEXT
 #include <cstdio>
@@ -20,17 +20,17 @@ void RedirectIOToConsole()
 	int hConHandle;
 	long lStdHandle;
 	CONSOLE_SCREEN_BUFFER_INFO coninfo;
-	FILE *fp;
+	FILE* fp;
 
 	// allocate a console for this app
 	AllocConsole();
 
 	// set the screen buffer to be big enough to let us scroll text
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), 
-		&coninfo);
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
+	                           &coninfo);
 	coninfo.dwSize.Y = MAX_CONSOLE_LINES;
-	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), 
-		coninfo.dwSize);
+	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE),
+	                           coninfo.dwSize);
 
 	// redirect unbuffered STDOUT to the console
 	lStdHandle = (long)GetStdHandle(STD_OUTPUT_HANDLE);
@@ -53,7 +53,7 @@ void RedirectIOToConsole()
 	*stderr = *fp;
 	setvbuf( stderr, NULL, _IONBF, 0 );
 
-	// make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog 
+	// make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog
 	// point to console as well
 	std::ios::sync_with_stdio();
 }

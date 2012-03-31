@@ -32,7 +32,8 @@ using std::wstring;
 #define CMD_POPUP_MASK		0xF00
 
 // This is the table for Script Execution
-typedef struct t_wndprog_data {
+typedef struct t_wndprog_data
+{
 
 	unsigned long	line;
 	unsigned long	size;             // Size occupied by element in address space
@@ -44,7 +45,7 @@ typedef struct t_wndprog_data {
 	unsigned char	pause;            // script breakpoint
 	int				jumpto;           // to display jumps in script window
 
-} t_wndPROG_data; 
+} t_wndPROG_data;
 
 void initProgTable();
 
@@ -56,7 +57,7 @@ TABFUNC  wndprog_func;
 void InvalidateProgWindow(void);
 void FocusProgWindow(void);
 
-int  addProgLine(int line, wstring & command, int type=false);
+int  addProgLine(int line, wstring& command, int type = false);
 int  setProgLineEIP(int line, int eip);
 int  setProgLineValue(int line, wstring& value);
 int  setProgLineValue(int line, DWORD value);
@@ -68,10 +69,10 @@ int  setProgLineResultFloat(int line, long double result);
 int  isProgLineBP(int line);
 int  isProgLineComment(int line);
 int  getProgLineType(int line);
-int  setProgLineAttr(int line,int type) ;
+int  setProgLineAttr(int line, int type) ;
 
 void clearProgLines();
 void resetProgLines();
 
-bool editProgLine(t_wndprog_data *ppl) ;
-int  analyseProgLineType(wstring &scriptline, int linenumber);
+bool editProgLine(t_wndprog_data* ppl) ;
+int  analyseProgLineType(wstring& scriptline, int linenumber);

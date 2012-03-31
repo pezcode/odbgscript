@@ -30,13 +30,16 @@ var::var(wstring& rhs)
 	dw = 0;
 	flt = 0;
 	str  = rhs;
-	wstring s=rhs;
-	if (UnquoteString(s,'#','#')) {
-		size = s.length()/2;
-		int (*pf)(int) = toupper; 
+	wstring s = rhs;
+	if (UnquoteString(s, '#', '#'))
+	{
+		size = s.length() / 2;
+		int (*pf)(int) = toupper;
 		transform(str.begin(), str.end(), str.begin(), pf);
 		isbuf = true;
-	} else {
+	}
+	else
+	{
 		size = rhs.length();
 		isbuf = false;
 	}
@@ -90,13 +93,16 @@ var& var::operator=(const wstring& rhs)
 	dw = 0;
 	flt = 0;
 	str = rhs;
-	wstring s=rhs;
-	if (UnquoteString(s,'#','#')) {
-		size = s.length()/2;
-		int (*pf)(int) = toupper; 
+	wstring s = rhs;
+	if (UnquoteString(s, '#', '#'))
+	{
+		size = s.length() / 2;
+		int (*pf)(int) = toupper;
 		transform(str.begin(), str.end(), str.begin(), pf);
 		isbuf = true;
-	} else {
+	}
+	else
+	{
 		size = rhs.length();
 		isbuf = false;
 	}
@@ -161,12 +167,13 @@ var& var::operator=(const long double& rhs)
 var& var::operator+=(const var& rhs)
 {
 	if(rhs.vt == DW)
-		*this+=rhs.dw;
+		*this += rhs.dw;
 	else if(rhs.vt == FLT)
-		*this+=rhs.flt;
-	else if(rhs.vt == STR) {
+		*this += rhs.flt;
+	else if(rhs.vt == STR)
+	{
 		//operator+=(const wstring& rhs)
-		*this+=rhs.str;
+		*this += rhs.str;
 	}
 	return *this;
 }
@@ -174,51 +181,66 @@ var& var::operator+=(const var& rhs)
 var& var::operator+=(const wstring& rhs)
 {
 	wstring s;
-	if(vt == STR) {
-		wstring s=rhs;
-		if (UnquoteString(s,'#','#')) {
-			if (!isbuf) {
+	if(vt == STR)
+	{
+		wstring s = rhs;
+		if (UnquoteString(s, '#', '#'))
+		{
+			if (!isbuf)
+			{
 				//String + buf Hex Buffer to String ok
-				size_t len=s.length()/2;
-				wchar_t* buf = (wchar_t*)malloc(len*2+1);
-				Str2Rgch(s,buf,len+1);
-				s.assign(buf,len);
+				size_t len = s.length() / 2;
+				wchar_t* buf = (wchar_t*)malloc(len * 2 + 1);
+				Str2Rgch(s, buf, len + 1);
+				s.assign(buf, len);
 				str  += s;
 				size += len;
 				free(buf);
-			} else { 
-				// Buffer + Buffer
-				str = L"#"+str.substr(1,str.length()-2)+s+L"#";
-				size += s.length()/2;
 			}
-		} else {
-			if (!isbuf) {
+			else
+			{
+				// Buffer + Buffer
+				str = L"#" + str.substr(1, str.length() - 2) + s + L"#";
+				size += s.length() / 2;
+			}
+		}
+		else
+		{
+			if (!isbuf)
+			{
 				//str + str
 				str += rhs;
 				size += rhs.length();
-			} else {
+			}
+			else
+			{
 				//buf + str
 				wstring Hex;
-				Str2Hex(s,Hex,s.length());
-				str = L"#"+str.substr(1,str.length()-2)+Hex+L"#";
+				Str2Hex(s, Hex, s.length());
+				str = L"#" + str.substr(1, str.length() - 2) + Hex + L"#";
 				size += s.length();
 			}
 		}
 
-	} else if(vt == DW) {
-		var v=(wstring)rhs;
+	}
+	else if(vt == DW)
+	{
+		var v = (wstring)rhs;
 
 		wchar_t dwbuf[12];
-		if (v.isbuf) {
+		if (v.isbuf)
+		{
 			//ulong + BUFFER >> CONCATE HEX
 			s = strbuffhex();
-			wsprintf(dwbuf, L"%08X",dw);
-			*this = L"#"+((wstring)dwbuf)+s+L"#";
-		} else {
+			wsprintf(dwbuf, L"%08X", dw);
+			*this = L"#" + ((wstring)dwbuf) + s + L"#";
+		}
+		else
+		{
 			//ulong + STRING >> CONCATE _ultow+str
 			_ultow_s(dw, dwbuf, 16);
 			s = _wcsupr_s(dwbuf);
-			*this = s+v.str;
+			*this = s + v.str;
 		}
 	}
 
@@ -231,15 +253,19 @@ var& var::operator+=(const ulong& rhs)
 		dw += rhs;
 	else if(vt == FLT)
 		flt += rhs;
-	else if(vt == STR) {
+	else if(vt == STR)
+	{
 		wstring s;
 		wchar_t dwbuf[12];
-		if (isbuf) {
+		if (isbuf)
+		{
 			//Concate Num ulong to a buffer (4 octets)
 			s = strbuffhex();
-			wsprintf(dwbuf, L"%08X",rev(rhs));
+			wsprintf(dwbuf, L"%08X", rev(rhs));
 			*this = L"#" + s + dwbuf + L"#";
-		} else {
+		}
+		else
+		{
 			//Add Number to a String
 			_ultow_s(rhs, dwbuf, 16);
 			s = _wcsupr_s(dwbuf);
@@ -257,7 +283,7 @@ var& var::operator+=(const int& rhs)
 	else if(vt == FLT)
 		flt += rhs;
 	else if(vt == STR)
-		*this+=(ulong) rhs;
+		*this += (ulong) rhs;
 
 	return *this;
 }
@@ -272,39 +298,44 @@ var& var::operator+=(const long double& rhs)
 int var::compare(const var& rhs) const
 {
 	// less than zero this < rhs
-	// zero this == rhs 
-	// greater than zero this > rhs 
+	// zero this == rhs
+	// greater than zero this > rhs
 	if(vt != rhs.vt || vt == EMP || rhs.vt == EMP)
 		return -2;
-	
+
 	if(vt == DW)
 	{
 		if(dw < rhs.dw) return -1;
 		if(dw == rhs.dw) return 0;
 		if(dw > rhs.dw) return 1;
-	} 	
+	}
 	else if(vt == FLT)
 	{
 		if(flt < rhs.flt) return -1;
 		if(flt == rhs.flt) return 0;
 		if(flt > rhs.flt) return 1;
 	}
-	else if(vt == STR) {
+	else if(vt == STR)
+	{
 		if (isbuf == rhs.isbuf)
 			return str.compare(rhs.str);
-		else {
+		else
+		{
 			wstring Hex;
-			if (isbuf) {
+			if (isbuf)
+			{
 				//Buffer / String
-				wstring s=str;
-				UnquoteString(s,'#','#');
-				Str2Hex((wstring)rhs.str,Hex,rhs.size);
+				wstring s = str;
+				UnquoteString(s, '#', '#');
+				Str2Hex((wstring)rhs.str, Hex, rhs.size);
 				return s.compare(Hex);
-			} else { 
+			}
+			else
+			{
 				//String / Buffer
-				wstring s=rhs.str;
-				UnquoteString(s,'#','#');
-				Str2Hex((wstring)str,Hex,size);
+				wstring s = rhs.str;
+				UnquoteString(s, '#', '#');
+				Str2Hex((wstring)str, Hex, size);
 				return Hex.compare(s);
 			}
 		}
@@ -317,7 +348,7 @@ int var::compare(const wstring& rhs) const
 	var tmp;
 	tmp.vt = STR;
 	tmp.str = rhs;
-    return compare(tmp);
+	return compare(tmp);
 }
 
 int var::compare(const ulong& rhs) const
@@ -338,52 +369,63 @@ int var::compare(const long double& rhs) const
 	return compare(tmp);
 }
 
-wstring var::strclean(void) 
+wstring var::strclean(void)
 {
 	return CleanString(strbuff());
 }
 
-wstring var::strbuffhex(void) 
+wstring var::strbuffhex(void)
 {
 	if (isbuf)
 		//#001122# to "001122"
-		return str.substr(1,str.length()-2);
-	else {
+		return str.substr(1, str.length() - 2);
+	else
+	{
 		wstring s;
-		Str2Hex(str,s,size);
+		Str2Hex(str, s, size);
 		return s;
 	}
 }
 
-wstring var::strbuff(void) 
+wstring var::strbuff(void)
 {
-	if (isbuf) {
+	if (isbuf)
+	{
 		//#303132# to "012"
-		wstring s=strbuffhex();
-		wstring tmp=s.substr(0,size);
-		Str2Rgch(s,(wchar_t*)tmp.c_str(),size);
-		s=tmp;
+		wstring s = strbuffhex();
+		wstring tmp = s.substr(0, size);
+		Str2Rgch(s, (wchar_t*)tmp.c_str(), size);
+		s = tmp;
 		return s;
-	} else
+	}
+	else
 		return str;
 }
 
 void var::resize(ulong newsize)
 {
-	if (vt==DW){
-		if (newsize==1) {
-			dw&=0xFF;
+	if (vt == DW)
+	{
+		if (newsize == 1)
+		{
+			dw &= 0xFF;
 		}
-		else if (newsize==2) {
-			dw&=0xFFFF;
+		else if (newsize == 2)
+		{
+			dw &= 0xFFFF;
 		}
-	} 
-	else if (vt==STR){
-		if (size > newsize) {
-			if (isbuf) {
-				*this = L"#"+strbuff().substr(0,newsize)+L"#";
-			} else {
-				*this = strbuff().substr(0,newsize);
+	}
+	else if (vt == STR)
+	{
+		if (size > newsize)
+		{
+			if (isbuf)
+			{
+				*this = L"#" + strbuff().substr(0, newsize) + L"#";
+			}
+			else
+			{
+				*this = strbuff().substr(0, newsize);
 			}
 		}
 	}

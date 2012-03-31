@@ -29,9 +29,10 @@ INT_PTR CALLBACK InputDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 #include "LogWindows.h"
 
 // This is the table for Script Execution
-typedef struct t_dbgmemblock {
+typedef struct t_dbgmemblock
+{
 
-	void *	hmem;		 //Memory Adress
+	void* 	hmem;		 //Memory Adress
 	ulong	size;		 //Block Size
 	int		script_pos;	 //Registred at script pos
 	bool	autoclean;	 //On script restart/change
@@ -48,14 +49,16 @@ typedef struct t_dbgmemblock {
 
 } t_dbgmemblock;
 
-typedef struct t_export {
+typedef struct t_export
+{
 
 	ulong addr;
 	char  label[TEXTLEN];
 
 } t_export;
 
-typedef struct t_exec_history {
+typedef struct t_exec_history
+{
 	unsigned long	line;
 	unsigned long	time;
 } t_exec_history;
@@ -105,8 +108,8 @@ public:
 	// Script Window
 	int GetFirstCodeLine(int from);
 
-	void menuListLabels(HMENU mLabels,int cmdIndex);
-	void menuListVariables(HMENU mVars,int cmdIndex);
+	void menuListLabels(HMENU mLabels, int cmdIndex);
+	void menuListVariables(HMENU mVars, int cmdIndex);
 
 	bool editVariable(int nVar);
 	bool followVariable(int nVar);
@@ -126,9 +129,9 @@ public:
 
 	// Free Allocated Virtual Memory
 	bool freeMemBlocks();
-	void regBlockToFree(t_dbgmemblock &block);
-	void regBlockToFree(void * hMem, ulong size, bool autoclean);
-	bool unregMemBlock(void * hMem);
+	void regBlockToFree(t_dbgmemblock& block);
+	void regBlockToFree(void* hMem, ulong size, bool autoclean);
+	bool unregMemBlock(void* hMem);
 
 	// History
 	void addHistoryStep(int line);
@@ -211,13 +214,14 @@ private:
 	DWORD tickcounthi;
 	ULONGLONG tickcount_startup;
 
-	unsigned char * search_buffer;
+	unsigned char* search_buffer;
 
 	// Pseudo-flags to emulate CMP
 	BYTE zf, cf;
 	HWND hwmain;
 	// Cursor for REF / (NEXT)REF function
-	int adrREF; int curREF;
+	int adrREF;
+	int curREF;
 
 	// Commands
 	bool DoADD(wstring args);
@@ -394,17 +398,17 @@ private:
 	// Helper functions
 	vector<wstring> GetScriptFromFile(wstring fileName);
 	int InsertScript(vector<wstring> toInsert, int posInScript);
-	int getStringOperatorPos(wstring &ops);
-	int getDWOperatorPos(wstring &ops);
-	int getFLTOperatorPos(wstring &ops);
-	bool CreateOperands(wstring& args, wstring ops[], uint len, bool preferstr=false);
-	bool CreateOp(wstring& args, wstring ops[], uint len, bool preferstr=false);
-	bool GetBYTEOpValue(wstring op, BYTE &value);
-	bool GetDWOpValue(wstring op, DWORD &value, DWORD default_val=0);
-	bool GetAddrOpValue(wstring op, DWORD &value);
-	bool GetFLTOpValue(wstring op, long double &value);
-	bool GetSTROpValue(wstring op, wstring &value, int size=0);
-	bool GetANYOpValue(wstring op, wstring &value, bool hex8forExec=false);
+	int getStringOperatorPos(wstring& ops);
+	int getDWOperatorPos(wstring& ops);
+	int getFLTOperatorPos(wstring& ops);
+	bool CreateOperands(wstring& args, wstring ops[], uint len, bool preferstr = false);
+	bool CreateOp(wstring& args, wstring ops[], uint len, bool preferstr = false);
+	bool GetBYTEOpValue(wstring op, BYTE& value);
+	bool GetDWOpValue(wstring op, DWORD& value, DWORD default_val = 0);
+	bool GetAddrOpValue(wstring op, DWORD& value);
+	bool GetFLTOpValue(wstring op, long double& value);
+	bool GetSTROpValue(wstring op, wstring& value, int size = 0);
+	bool GetANYOpValue(wstring op, wstring& value, bool hex8forExec = false);
 	void LogRegNr(wstring& name);
 	int GetRegNr(wstring& name);
 	int GetSegNr(wstring& name);
@@ -416,9 +420,9 @@ private:
 
 	bool ParseLabels();
 	bool Process(wstring& codeLine);
-	bool AddBPJump(int bpaddr,int labelpos);
+	bool AddBPJump(int bpaddr, int labelpos);
 
-	wstring ResolveVarsForExec(wstring in,bool hex8forExec);
+	wstring ResolveVarsForExec(wstring in, bool hex8forExec);
 
 	// Debug functions
 	void DumpVars();
@@ -430,8 +434,8 @@ private:
 
 	wstring FormatAsmDwords(wstring asmLine);
 
-	DWORD AddProcessMemoryBloc(wstring data, int mode=PAGE_READWRITE);
-	DWORD AddProcessMemoryBloc(int size, int mode=PAGE_READWRITE);
+	DWORD AddProcessMemoryBloc(wstring data, int mode = PAGE_READWRITE);
+	DWORD AddProcessMemoryBloc(int size, int mode = PAGE_READWRITE);
 	bool  DelProcessMemoryBloc(DWORD address);
 
 	bool ExecuteASM(wstring command);

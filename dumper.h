@@ -1,13 +1,14 @@
 #include <windows.h>
 #include "ollydbg201.h"
 
-DWORD strCurEIP; 
-wchar_t  szFileName[MAX_PATH]={0},szFile[MAX_PATH]={0},szWorkPath[MAX_PATH]={0};
+DWORD strCurEIP;
+wchar_t  szFileName[MAX_PATH] = {0}, szFile[MAX_PATH] = {0}, szWorkPath[MAX_PATH] = {0};
 BOOL  FixSect = true;
 wchar_t  buf[TEXTLEN];
 #define PNAME   L"Scripted PE Dumper"
 
-typedef struct {
+typedef struct
+{
 	WORD  woNumOfSect;
 	DWORD dwImageBase;
 	DWORD dwSizeOfImage;
@@ -16,7 +17,8 @@ typedef struct {
 	DWORD dwBaseOfData;
 } PEFILEINFO, *LPPEFILEINFO;
 
-typedef struct {
+typedef struct
+{
 	BYTE  byName[IMAGE_SIZEOF_SHORT_NAME];
 	DWORD dwVSize;
 	DWORD dwVOffset;
@@ -25,7 +27,7 @@ typedef struct {
 	DWORD dwCharacteristics;
 } SECTIONINFO, *LPSECTIONINFO;
 
-PEFILEINFO    PEFileInfo,PEFileInfoWrk;
+PEFILEINFO    PEFileInfo, PEFileInfoWrk;
 SECTIONINFO   SectInfoWrk;
 LPSECTIONINFO lpSectInfo = NULL;;
 LPTSTR DbgePath;

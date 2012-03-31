@@ -30,13 +30,13 @@ extc _export HWND cdecl DebugScript(const char* const filename);
 
 // ODBG2 stuff :
 
-int Mrunscript(t_table *pt,wchar_t *name,ulong index,int mode);
-int Mscriptwindow(t_table *pt,wchar_t *name,ulong index,int mode);
-int Mlogwindow(t_table *pt,wchar_t *name,ulong index,int mode);
-int Mcommand(t_table *pt,wchar_t *name,ulong index,int mode);
-int Mabout(t_table *pt,wchar_t *name,ulong index,int mode);
+int Mrunscript(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mscriptwindow(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mlogwindow(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mcommand(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mabout(t_table* pt, wchar_t* name, ulong index, int mode);
 
-int Mtest(t_table *pt,wchar_t *name,ulong index,int mode);
+int Mtest(t_table* pt, wchar_t* name, ulong index, int mode);
 
 // OllyLang object
 extern OllyLang* ollylang;

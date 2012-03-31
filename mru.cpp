@@ -7,46 +7,51 @@ using std::wstring;
 
 //NOTE : OllyDBG Main Menu is Static... so we need to store MRU for next OllyDbg start
 
-void mruAddFile(wstring filePath) {
-	
+void mruAddFile(wstring filePath)
+{
+
 	wchar_t buf[4096] = {0};
 
 	int n;
 	wchar_t key[5] = L"NRU ";
 
-	for(n=1; n<=9; n++) { 
-		key[3]=n + 0x30; //ASCII n
+	for(n = 1; n <= 9; n++)
+	{
+		key[3] = n + 0x30; //ASCII n
 		memset(&buf, 0, sizeof(buf));
-		Getfromini(NULL,PLUGIN_NAME, key, L"%s", buf);
-		if (wcscmp(buf,filePath.c_str())==0) {
+		Getfromini(NULL, PLUGIN_NAME, key, L"%s", buf);
+		if (wcscmp(buf, filePath.c_str()) == 0)
+		{
 			//Move File to first MRU
-			key[3]='1';
+			key[3] = '1';
 			//Pluginreadstringfromini(h,key,buf,0);
-			Getfromini(NULL,PLUGIN_NAME, key, L"%s", buf);
+			Getfromini(NULL, PLUGIN_NAME, key, L"%s", buf);
 			//Pluginwritestringtoini(h,key,szFilePath);
-			Writetoini(NULL,PLUGIN_NAME, key, L"%s", (wchar_t*) filePath.c_str() );
-			key[3]=n + 0x30;
+			Writetoini(NULL, PLUGIN_NAME, key, L"%s", (wchar_t*) filePath.c_str() );
+			key[3] = n + 0x30;
 			//Pluginwritestringtoini(h,key,buf);
-			Writetoini(NULL,PLUGIN_NAME, key, L"%s", buf);
+			Writetoini(NULL, PLUGIN_NAME, key, L"%s", buf);
 			return;
 		}
 	}
-	for(n=9; n>0; n--) {
+	for(n = 9; n > 0; n--)
+	{
 		//Add File then Move others
-		key[3]=n+0x30;
+		key[3] = n + 0x30;
 		ZeroMemory(&buf, sizeof(buf));
 		//Pluginreadstringfromini(h,key,buf,0);
-		Getfromini(NULL,PLUGIN_NAME, key, L"%s", buf);
-		if (wcslen(buf)) {
-			key[3]=n+1+0x30;
+		Getfromini(NULL, PLUGIN_NAME, key, L"%s", buf);
+		if (wcslen(buf))
+		{
+			key[3] = n + 1 + 0x30;
 			//Pluginwritestringtoini(h,key,buf);
-			Writetoini(NULL,PLUGIN_NAME, key, L"%s", buf);
+			Writetoini(NULL, PLUGIN_NAME, key, L"%s", buf);
 		}
 	}
-	
-	key[3]='1';
+
+	key[3] = '1';
 	//Pluginwritestringtoini(h, key, szFilePath);
-	Writetoini(NULL,PLUGIN_NAME, key, L"%s", (wchar_t*) filePath.c_str() );
+	Writetoini(NULL, PLUGIN_NAME, key, L"%s", (wchar_t*) filePath.c_str() );
 
 }
 
@@ -60,7 +65,7 @@ int  mruGetMenu(char* buf) {
 	int p=0;
 	int c,v;
 	string path;
-	
+
 	strcpy(key,"NRU ");
 	strcpy(key2,"MRU ");
 
@@ -76,7 +81,7 @@ int  mruGetMenu(char* buf) {
 				buf[p]=0x32;   p++;
 				buf[p]=key[3]; p++;
 				buf[p]=0x20;   p++;
-				
+
 				path=buf2;
 				c=path.rfind('\\') + 1;
 
@@ -91,7 +96,7 @@ int  mruGetMenu(char* buf) {
 				}
 
 				strcpy(&buf[p],&buf2[c]); p+=strlen(&buf2[c]);
-				buf[p]=',';p++; 
+				buf[p]=',';p++;
 			}
 		}
 	}
@@ -102,70 +107,86 @@ int  mruGetMenu(char* buf) {
 */
 
 //ON DISASM WINDOW, ITS CALLED ON CONTEXT MENU
-int mruGetCurrentMenu(wchar_t* buf) {
+int mruGetCurrentMenu(wchar_t* buf)
+{
 
 	wchar_t buf2[4096] = {0};
 	wchar_t key[5];
-	int p=0;
-	int c,v;
+	int p = 0;
+	int c, v;
 	wstring path;
 
-	wcscpy_s(key,L"NRU ");
+	wcscpy_s(key, L"NRU ");
 
- 	for(int n=1; n<=9; n++) {
-		key[3]=n+0x30; //ASCII n
+	for(int n = 1; n <= 9; n++)
+	{
+		key[3] = n + 0x30; //ASCII n
 
 		ZeroMemory(&buf2, sizeof(buf2));
-		Getfromini(NULL,PLUGIN_NAME, key, L"%s", buf2);
-		if (wcslen(buf2)) {
-			if (PathFileExists(buf2)) {
-				buf[p]=0x32;   p++;
-				buf[p]=key[3]; p++;
-				buf[p]=0x20;   p++;
-				
-				path=buf2;
-				c=path.rfind('\\') + 1;
+		Getfromini(NULL, PLUGIN_NAME, key, L"%s", buf2);
+		if (wcslen(buf2))
+		{
+			if (PathFileExists(buf2))
+			{
+				buf[p] = 0x32;
+				p++;
+				buf[p] = key[3];
+				p++;
+				buf[p] = 0x20;
+				p++;
 
-				while ( (v = wcschr(&buf2[c],',')-&buf2[c]) > 0) {
-					buf2[c+v]='.';
+				path = buf2;
+				c = path.rfind('\\') + 1;
+
+				while ( (v = wcschr(&buf2[c], ',') - &buf2[c]) > 0)
+				{
+					buf2[c + v] = '.';
 				}
-				while ( (v = wcschr(&buf2[c],'{')-&buf2[c]) > 0) {
-					buf2[c+v]='[';
+				while ( (v = wcschr(&buf2[c], '{') - &buf2[c]) > 0)
+				{
+					buf2[c + v] = '[';
 				}
-				while ( (v = wcschr(&buf2[c],'}')-&buf2[c]) > 0) {
-					buf2[c+v]=']';
+				while ( (v = wcschr(&buf2[c], '}') - &buf2[c]) > 0)
+				{
+					buf2[c + v] = ']';
 				}
 
-				wcscpy(&buf[p],&buf2[c]); p+=wcslen(&buf2[c]);
-				buf[p]=',';p++; 
+				wcscpy(&buf[p], &buf2[c]);
+				p += wcslen(&buf2[c]);
+				buf[p] = ',';
+				p++;
 			}
 		}
 	}
-	if (p>0) buf[--p]=0;
+	if (p > 0) buf[--p] = 0;
 
 	return p;
 
 }
 
-int mruGetCurrentMenu(HMENU mmru,int cmdIndex) {
+int mruGetCurrentMenu(HMENU mmru, int cmdIndex)
+{
 
 	wchar_t buf2[4096] = {0};
-	wchar_t key[5];	
-	int c,v;
+	wchar_t key[5];
+	int c, v;
 	wstring path;
 
-	wcscpy_s(key,L"NRU ");
+	wcscpy_s(key, L"NRU ");
 
- 	for(int n=1; n<=9; n++) {
-		key[3]=n+0x30; //ASCII n
+	for(int n = 1; n <= 9; n++)
+	{
+		key[3] = n + 0x30; //ASCII n
 
 		ZeroMemory(&buf2, sizeof(buf2));
-		Getfromini(NULL,PLUGIN_NAME, key, L"%s", buf2);
-		if (wcslen(buf2)) {
-			if (PathFileExists(buf2)) {
-				path=buf2;
-				c=path.rfind('\\') + 1;
-				AppendMenu(mmru,MF_STRING,cmdIndex+n,&buf2[c]);
+		Getfromini(NULL, PLUGIN_NAME, key, L"%s", buf2);
+		if (wcslen(buf2))
+		{
+			if (PathFileExists(buf2))
+			{
+				path = buf2;
+				c = path.rfind('\\') + 1;
+				AppendMenu(mmru, MF_STRING, cmdIndex + n, &buf2[c]);
 			}
 		}
 	}
@@ -174,9 +195,10 @@ int mruGetCurrentMenu(HMENU mmru,int cmdIndex) {
 }
 
 
-int mruCmdMenu(HMENU mmru,int cmdIndex) {
+int mruCmdMenu(HMENU mmru, int cmdIndex)
+{
 
-	AppendMenu(mmru,MF_STRING,cmdIndex+1,L"ESP定律");
+	AppendMenu(mmru, MF_STRING, cmdIndex + 1, L"ESP定律");
 	return 1;
 }
 

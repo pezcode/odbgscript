@@ -10,7 +10,7 @@ typedef unsigned long ulong;
 
 class var
 {
-typedef unsigned long ulong;
+	typedef unsigned long ulong;
 public:
 	ulong dw;
 	wstring str;
@@ -20,20 +20,20 @@ public:
 	int size;
 
 	var();
-	var(const var& rhs); 
-	var(wstring& rhs); 
-	var(ulong rhs); 
-	var(int rhs); 
-	var(long double rhs); 
+	var(const var& rhs);
+	var(wstring& rhs);
+	var(ulong rhs);
+	var(int rhs);
+	var(long double rhs);
 
 	// less than zero this < rhs
-	// zero this == rhs 
-	// greater than zero this > rhs 
-	int compare(const var& rhs) const; 
-	int compare(const wstring& rhs) const; 
-	int compare(const ulong& rhs) const; 
-	int compare(const int& rhs) const; 
-	int compare(const long double& rhs) const; 
+	// zero this == rhs
+	// greater than zero this > rhs
+	int compare(const var& rhs) const;
+	int compare(const wstring& rhs) const;
+	int compare(const ulong& rhs) const;
+	int compare(const int& rhs) const;
+	int compare(const long double& rhs) const;
 
 	wstring strclean(void);
 	wstring strbuffhex(void);
