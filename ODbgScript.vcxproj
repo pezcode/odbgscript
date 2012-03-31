@@ -97,11 +97,9 @@
     <ClInclude Include="dumper.h" />
     <ClInclude Include="guicon.h" />
     <ClInclude Include="HelperFunctions.h" />
-    <ClInclude Include="IniReader.h" />
     <ClInclude Include="LogWindows.h" />
     <ClInclude Include="mru.h" />
     <ClInclude Include="ODbgScript.h" />
-    <ClInclude Include="ollydbg110.h" />
     <ClInclude Include="ollydbg201.h" />
     <ClInclude Include="OllyLang.h" />
     <ClInclude Include="Progress.h" />
