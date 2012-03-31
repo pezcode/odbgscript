@@ -1,10 +1,31 @@
+#pragma once
+
 #include <windows.h>
+#include "ollydbg201.h"
 #include <string>
+#include <vector>
 
-using std::wstring;
+class MRU
+{
+public:
 
-void mruAddFile(wstring szFilePath);
-//int  mruGetMenu(char* buf);
-int  mruGetCurrentMenu(wchar_t* buf);
-int  mruGetCurrentMenu(HMENU mmru, int cmdIndex); // For Dynamic MRU List (Script Window Context Menu)
-int  mruCmdMenu(HMENU mmru, int cmdindex);
+	MRU(unsigned int max_size);
+
+	unsigned int size() const;
+
+	bool load();
+	bool save() const;
+	void clear();
+
+	std::wstring get(int i) const;
+	bool add(const std::wstring& file);
+	bool remove(const std::wstring& file);
+
+	std::vector<t_menu> build_menu(MENUFUNC* handler) const;
+
+private:
+
+	unsigned int max_size;
+	std::vector<std::wstring> items;
+	mutable std::vector<std::wstring> menu_strings;
+};
