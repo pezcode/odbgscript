@@ -7,6 +7,447 @@
 
 long wndprog_func(t_table* pt, HWND hw, UINT msg, WPARAM wp, LPARAM lp)
 {
+int i,m,shiftkey,controlkey;
+BYTE keystate;
+WORD key;
+ulong u;
+HMENU menu,mLoad,mCmd,mRun,mLabels=NULL,mVars=NULL;
+t_wndprog_data *ppl;
+
+	//HWND hw = hwollymain;
+
+	switch (msg)
+	{
+		case WM_USER_DBLCLK: //case WM_LBUTTONDBLCLK:
+			i = ollylang->wndProg.sorted.selected;
+			//ppl=(t_wndprog_data *)Getsortedbyselection(&ollylang->wndProg.sorted,ollylang->wndProg.sorted.selected);
+			if (i > 0)
+			{
+				i = ollylang->GetFirstCodeLine(i-1) + 1;
+				ollylang->jumpToLine(i);
+				InvalidateRect(hw, NULL, FALSE);
+			}
+			break;
+
+		/*
+		case WM_DESTROY:
+		case WM_MOUSEMOVE:
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONUP:
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONDBLCLK:
+		case WM_HSCROLL:
+		case WM_VSCROLL:
+		case WM_TIMER:
+		case WM_SYSKEYDOWN:
+			Tablefunction(&(ollylang->wndProg),hw,msg,wp,lp);
+			break;                           // Pass message to DefMDIChildProc()
+			// Custom messages responsible for scrolling and selection. User-drawn
+			// windows must process them, standard OllyDbg windows without extra
+			// functionality pass them to Tablefunction()
+//2		case WM_USER_SCR:
+//2		case WM_USER_VABS:
+//2		case WM_USER_VREL:
+//2		case WM_USER_STS:
+//2		case WM_USER_CHGS:
+		case WM_USER_VBYTE:
+		case WM_USER_CNTS:
+		case WM_WINDOWPOSCHANGED:
+			return Tablefunction(&(ollylang->wndProg),hw,msg,wp,lp);
+		*/
+
+		/*
+		case WM_USER_MENU:
+			menu=CreatePopupMenu();
+
+			mRun=CreatePopupMenu();
+			AppendMenu(menu,MF_POPUP,(DWORD) mRun,L"Run Script");
+			AppendMenu(mRun,MF_MENUBREAK,20,L"Open...");
+			AppendMenu(mRun,MF_SEPARATOR,0,L"-");
+			//mruGetCurrentMenu(mRun,20);
+
+			mLoad=CreatePopupMenu();
+			AppendMenu(menu,MF_POPUP,(DWORD) mLoad,L"Load Script");
+			AppendMenu(mLoad,MF_MENUBREAK,10,L"Open...");
+			AppendMenu(mLoad,MF_SEPARATOR,0,L"-");
+			//mruGetCurrentMenu(mLoad,10);
+
+			AppendMenu(menu,MF_SEPARATOR,0,L"-");
+			AppendMenu(menu,MF_STRING, 1,L"&Help");
+
+			//mCmd=CreatePopupMenu();
+			//AppendMenu(mCmd,MF_SEPARATOR,0,"-");
+			//mruCmdMenu(mCmd,50);
+
+			ppl=(t_wndprog_data *)Getsortedbyselection(&ollylang->wndProg.sorted,ollylang->wndProg.sorted.selected);
+			if (menu!=NULL && ppl!=NULL)
+			{
+				AppendMenu(menu,MF_STRING, 30,L"Edit Script...");
+				AppendMenu(menu,MF_SEPARATOR,0,L"-");
+				AppendMenu(menu,MF_DEFAULT,31,L"&Follow\tEnter");
+				AppendMenu(menu,MF_STRING, 32,L"Toggle Script BP\tF2");
+				AppendMenu(menu,MF_STRING, 36,L"Run until cursor\tF4");
+				AppendMenu(menu,MF_STRING, 33,L"Step\tTAB");
+
+				if (script_state==SS_PAUSED)
+					AppendMenu(menu,MF_STRING, 34,L"Resume\tSPC");
+				else
+					AppendMenu(menu,MF_STRING, 34,L"Pause\tSPC");
+
+				AppendMenu(menu,MF_STRING, 35,L"Abort\tESC");
+
+				AppendMenu(menu,MF_DEFAULT,37,L"&Edit line\tE");
+			}
+			if (ollylang->labels.size() > 0)
+			{
+				mLabels=CreatePopupMenu();
+				AppendMenu(menu,MF_SEPARATOR,0,L"-");
+				AppendMenu(menu,MF_POPUP,(DWORD) mLabels,L"Scroll to Label");
+				ollylang->menuListLabels(mLabels,MASK_POPUP_LABEL);
+			}
+
+			if (ollylang->variables.size() > 0)
+			{
+				mVars=CreatePopupMenu();
+				AppendMenu(menu,MF_SEPARATOR,0,L"-");
+				AppendMenu(menu,MF_POPUP,(DWORD) mVars,L"Edit Variables");
+				ollylang->menuListVariables(mVars,MASK_POPUP_VAR);
+			}
+			if (Getstatus() == STAT_STOPPED)
+			{
+				AppendMenu(menu,MF_SEPARATOR,0,L"-");
+				AppendMenu(menu,MF_STRING, 39,L"Execute Command...\tX");
+			}
+
+			// Even when menu is NULL, call to Tablefunction is still meaningful.
+			i=Tablefunction(&ollylang->wndProg,hw,WM_USER_MENU,0,(LPARAM)menu);
+
+			if (menu!=NULL) DestroyMenu(menu);
+			if (mLoad!=NULL) DestroyMenu(mLoad);
+			//if (mCmd!=NULL) DestroyMenu(mCmd);
+			if (mRun!=NULL) DestroyMenu(mRun);
+			if (mLabels!=NULL) DestroyMenu(mLabels);
+			if (mVars!=NULL) DestroyMenu(mVars);
+
+			if (i>10 && i<=29 && i!=20)
+			{
+				wchar_t buff[MAX_PATH];
+				wchar_t key[5]=L"NRU ";
+				key[3]=(i%10)+0x30;
+
+				memset(&buff, 0, sizeof(buff));
+				Getfromini(NULL,PLUGIN_NAME, key, L"%s", buff);
+
+				// Load script
+				ollylang->LoadScript(buff);
+
+				mru.add(buff);
+
+				// Save script directory
+				wchar_t* buf2;
+				GetFullPathName(buff,sizeof(buff),buff,&buf2);
+				*buf2=0;
+				Pluginwritestringtoini(0, L"ScriptDir", buff);
+
+				// Pause script (From Load Script MRU)
+				if (i<20)
+				{
+					ollylang->Pause();
+				}
+				return 1;
+			}
+			else if (i & MASK_POPUP_VAR)
+			{
+				if (i & CMD_POPUP_MASK)
+					ollylang->followVariable(i-MASK_POPUP_VAR);
+				else
+					ollylang->editVariable(i-MASK_POPUP_VAR);
+				InvalidateRect(hw, NULL, FALSE);
+				return 1;
+			}
+			else if (i & MASK_POPUP_LABEL)
+			{
+				Selectandscroll(&ollylang->wndProg,i-MASK_POPUP_LABEL,2);
+				InvalidateRect(hw, NULL, FALSE);
+				return 1;
+			}
+			else
+
+			switch (i)
+			{
+				case 1:
+				{
+					wstring directory, helpfile;
+					getPluginDirectory(directory);
+					helpfile = directory + L"\\ODbgScript.txt";
+					ShellExecuteW(hw,L"open",helpfile.c_str(),NULL,directory.c_str(),SW_SHOWDEFAULT);
+				}
+				break;
+				case 20: // Open Run
+					//ODBG_Pluginaction(PM_MAIN,0,NULL);
+					return 1;
+				case 10: // Open Load
+					//ODBG_Pluginaction(PM_MAIN,0,NULL);
+					ollylang->Pause();
+					return 1;
+				case 30: // Edit Script
+					ShellExecute(hw,L"open",ollylang->scriptpath.c_str(),NULL,ollylang->currentdir.c_str(),SW_SHOWDEFAULT);
+					return 1;
+				case 31: // Follow in Disassembler
+					if (ppl!=NULL) Setcpu(0,ppl->eip,0,0,0,CPU_ASMHIST|CPU_ASMCENTER|CPU_ASMFOCUS);
+					InvalidateRect(hw, NULL, FALSE);
+					return 1;
+				case 32: // Toggle Script BP
+					if (ppl!=NULL) if (ppl->pause) ppl->pause=0; else ppl->pause=1;
+					InvalidateRect(hw, NULL, FALSE);
+					return 1;
+				case 36:
+					if (ppl!=NULL) ppl->pause=1;
+					ollylang->Resume();
+					return 1;
+				case 37:
+					if (ppl!=NULL) editProgLine(ppl);
+					return 1;
+				case 33: // Step
+					ollylang->Pause(); //for right click step when running
+					ollylang->Step(1);
+					script_state = ollylang->script_state;
+					focusonstop=5;
+					return 1;
+				case 34: // Pause/Resume
+					if (script_state==SS_PAUSED)
+					{
+						ollylang->Resume();
+					}
+					else
+					{
+						ollylang->Pause();
+						script_state = ollylang->script_state;
+					}
+					return 1;
+				case 35: // Abort
+					ollylang->Reset();
+					ollylang->Pause();
+					return 1;
+			case 39: // Execute Command
+					if (Getstatus() == STAT_STOPPED)
+					{
+						ollylang->execCommand();
+						InvalidateRect(hw, NULL, FALSE);
+					}
+					return 1;
+				case 51:
+					if (Getstatus() == STAT_STOPPED)
+					{
+						ESPRun();
+					}
+					return 1;
+				default:;
+			}
+			return 0;
+		*/
+
+		/*
+		case WM_USER_DBLCLK:
+			ppl=(t_wndprog_data *)Getsortedbyselection(&(ollylang->wndProg.sorted),ollylang->wndProg.sorted.selected);
+			if (ppl!=NULL)
+			{
+				if (ppl->eip) Setcpu(0,ppl->eip,0,0,0,CPU_ASMHIST|CPU_ASMCENTER|CPU_ASMFOCUS);
+				InvalidateRect(hw, NULL, FALSE);
+				return 1;
+			}
+		*/
+
+		/*
+		case WM_KEYDOWN:
+			shiftkey=GetKeyState(VK_SHIFT) & 0x8000;
+			controlkey=GetKeyState(VK_CONTROL) & 0x8000;
+			if (wp==VK_RETURN && shiftkey==0 && controlkey==0)
+			{
+				// Return key follows in Disassembler.
+				ppl=(t_wndprog_data *)Getsortedbyselection(&(ollylang->wndProg.sorted),ollylang->wndProg.sorted.selected);
+				if (ppl!=NULL)
+				{
+					if (ppl->eip) Setcpu(0,ppl->eip,0,0,0,CPU_ASMHIST|CPU_ASMCENTER|CPU_ASMFOCUS);
+					InvalidateRect(hw, NULL, FALSE);
+				}
+			}
+			else if (wp==VK_F2)
+			{ // && shiftkey==0 && controlkey==0) {
+				// Toggle Script BP
+				ppl=(t_wndprog_data *)Getsortedbyselection(&(ollylang->wndProg.sorted),ollylang->wndProg.sorted.selected);
+				if (ppl!=NULL)
+				{
+					if (ppl->pause) ppl->pause=0; else ppl->pause=1;
+					InvalidateRect(hw, NULL, FALSE);
+				}
+			}
+			else if (wp==VK_F4)
+			{
+				// go Script BP
+				ppl=(t_wndprog_data *)Getsortedbyselection(&(ollylang->wndProg.sorted),ollylang->wndProg.sorted.selected);
+				if (ppl!=NULL)
+				{
+					if (ppl->pause) ppl->pause=0; else ppl->pause=1;
+					InvalidateRect(hw, NULL, FALSE);
+				   ollylang->Resume();
+				}
+			}
+			else if (wp==VK_TAB || wp=='S')
+			{
+
+				// Step
+				ollylang->Pause();
+				ollylang->Step(1);
+				script_state = ollylang->script_state;
+				focusonstop=4;
+				return 1;
+
+			}
+			else if (wp=='X')
+			{
+				// Command
+				if (Getstatus() == STAT_STOPPED)
+				{
+					ollylang->execCommand();
+					InvalidateRect(hw, NULL, FALSE);
+				}
+				return 1;
+			}
+			else if (wp=='E')
+			{
+				ppl=(t_wndprog_data *)Getsortedbyselection(&(ollylang->wndProg.sorted),ollylang->wndProg.sorted.selected);
+				if (ppl!=NULL)
+					editProgLine(ppl);
+				return 1;
+
+			}
+			else if (wp==' ')
+			{ // Pause/Resume
+
+				if (script_state==SS_PAUSED)
+				{
+					ollylang->Resume();
+				}
+				else
+				{
+					ollylang->Pause();
+					script_state = ollylang->script_state;
+				}
+				return 1;
+			}
+			else if (wp==VK_ESCAPE)
+			{
+				// Resume
+				ollylang->Reset();
+				ollylang->Pause();
+				return 1;
+			}
+			else if (wp==VK_LEFT)
+			{
+				if (ollylang->execCursor > 0) {
+					ollylang->execCursor--;
+					u = ollylang->execHistory.at(ollylang->execCursor).line;
+					Selectandscroll(&ollylang->wndProg,u,1);
+					InvalidateRect(hw, NULL, FALSE);
+				}
+				return 1;
+			}
+			else if (wp==VK_RIGHT)
+			{
+				if (ollylang->execCursor < ollylang->execHistory.size() -1 ) {
+					ollylang->execCursor++;
+					u = ollylang->execHistory.at(ollylang->execCursor).line;
+					Selectandscroll(&ollylang->wndProg,u,1);
+					InvalidateRect(hw, NULL, FALSE);
+				}
+				return 1;
+			}
+			else if (wp=='F' && controlkey) //Search
+			{
+				wchar_t buffer[TEXTLEN]={0};
+				Findname(1,NM_SOURCE,buffer);
+				//i = Gettext("Search in script...",buffer,0,NM_SOURCE,FIXEDFONT);
+				i = Getstring(hw, L"Search in script...", buffer,TEXTLEN, 0,0, 0,0, 0,0);
+				if (i != -1) {
+					Insertname(1,NM_SOURCE,buffer);
+					wstring s; s.assign(buffer);
+					m = ollylang->SearchInScript(s,ollylang->wndProg.sorted.selected);
+					if (m >= 0)
+					{
+						Selectandscroll(&ollylang->wndProg,m+1,1);
+						InvalidateRect(hw, NULL, FALSE);
+					}
+				}
+				return 1;
+			}
+			else if (wp=='G' && controlkey) //Goto Line
+			{
+				u = 0;
+				Getinteger(hw, L"Goto line...", &u,0,0,0,0,0);
+				if (u != 0)
+				{
+					Selectandscroll(&ollylang->wndProg,u,1);
+					InvalidateRect(hw, NULL, FALSE);
+				}
+				return 1;
+			}
+			Tablefunction(&ollylang->wndProg,hw,msg,wp,lp);
+			break;
+		*/
+
+		/*
+		case WM_CHAR:
+			if (wp==';')
+			{
+				ppl=(t_wndprog_data *)Getsortedbyselection(&(ollylang->wndProg.sorted),ollylang->wndProg.sorted.selected);
+				if (ppl != NULL)
+				{
+					wstring cmd = ppl->command;
+					int lvl = ppl->type & PROG_ATTR_IFLEVELS;
+					if (! (ppl->type & PROG_TYPE_COMMENT) )
+					{
+						cmd = L" ;"+w_trim(cmd);
+					}
+					else
+					{
+						cmd = w_trim(cmd);
+						cmd = L" "+w_trim(cmd.substr(1));
+					}
+
+					ollylang->script.erase(ollylang->script.begin()+ppl->line - 1);
+					ollylang->script.insert(ollylang->script.begin()+ppl->line - 1, cmd);
+
+					wcscpy(ppl->command, cmd.c_str());
+
+					cmd = w_trim(cmd);
+					ppl->type = analyseProgLineType(cmd,ppl->line);
+					ppl->type |= lvl;
+					InvalidateProgWindow();
+				}
+				return 1;
+			}
+			Tablefunction(&ollylang->wndProg,hw,msg,wp,lp);
+			break;
+			*/
+
+			/*
+		case WM_USER_CHGALL:
+		case WM_USER_CHGMEM:
+			InvalidateRect(hw, NULL, FALSE);
+			return 0;
+
+		case WM_PAINT:
+			ollylang->pgr_scriptpos_paint=ollylang->pgr_scriptpos;
+			Painttable(hw, &ollylang->wndProg, wndprog_get_text);
+			return 0;
+			*/
+		default:
+			break;
+	}
+
+	//return DefMDIChildProc(hw,msg,wp,lp);
+
 	return 0;
 }
 
@@ -431,10 +872,10 @@ t_wndprog_data *ppl;
 	return DefMDIChildProc(hw,msg,wp,lp);
 }
 */
-void initProgTable()
+void initProgTable(t_menu* menu)
 {
 
-	HINSTANCE hinst;
+	//HINSTANCE hinst;
 
 	if (ollylang->wndProg.bar.nbar == 0)
 	{
@@ -469,16 +910,16 @@ void initProgTable()
 		ollylang->wndProg.tabfunc  = wndprog_func;
 		ollylang->wndProg.bar.visible = 1;
 
-		ollylang->wndProg.menu = mainmenu;
+		ollylang->wndProg.menu = menu;
 
-		hinst = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
+		//hinst = GetModuleHandle(PLUGIN_NAME L".dll");
 		Createtablewindow(&ollylang->wndProg, 15, 5, hinst, L"ICO_P", L"Script Execution");
 	}
 
 	if (ollylang->wndProg.hw)
 	{
 		Activatetablewindow(&ollylang->wndProg);
-		hinst = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
+		//hinst = (HINSTANCE)GetModuleHandleW(PLUGIN_NAME L".dll");
 		HICON ico = LoadIcon(hinst, MAKEINTRESOURCE(IDI_ICON_SCRIPT));
 		SendMessage(ollylang->wndProg.hw, WM_SETICON, false, (long)ico);
 	}
@@ -1122,7 +1563,6 @@ int getProgLineType(int line)
 		return false;
 
 	return (ppl->type & PROG_TYPE);
-
 }
 
 int setProgLineAttr(int line, int attr)
@@ -1140,7 +1580,6 @@ int setProgLineAttr(int line, int attr)
 
 int isProgLineComment(int line)
 {
-
 	t_wndprog_data* ppl;
 	ppl = (t_wndprog_data*) Getsortedbyselection(&(ollylang->wndProg.sorted), line);
 	if (ppl == NULL)
@@ -1152,12 +1591,10 @@ int isProgLineComment(int line)
 	}
 
 	return false;
-
 }
 
 int isProgLineBP(int line)
 {
-
 	t_wndprog_data* ppl;
 	ppl = (t_wndprog_data*) Getsortedbyselection(&(ollylang->wndProg.sorted), line);
 	if (ppl == NULL)
@@ -1169,6 +1606,4 @@ int isProgLineBP(int line)
 	}
 
 	return ppl->pause;
-
 }
-

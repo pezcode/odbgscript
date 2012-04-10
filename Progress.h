@@ -47,7 +47,7 @@ typedef struct t_wndprog_data
 
 } t_wndPROG_data;
 
-void initProgTable();
+void initProgTable(t_menu* menu);
 
 SORTFUNC wndprog_sort_function;
 DESTFUNC wndprog_dest_function;
