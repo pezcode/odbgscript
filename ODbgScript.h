@@ -19,9 +19,13 @@ extern bool		dbgfocus;
 
 extern void*	pmemforexec;
 
+extern int script_state;
+
 extern t_menu mainmenu[];
 
 extern MRU mru;
+
+extern HINSTANCE hinst;
 
 //extc _export HWND cdecl DebugScript(const char* const filename);
 

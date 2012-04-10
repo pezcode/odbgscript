@@ -4,14 +4,12 @@
 #include "ollydbg201.h"
 #include "version.h"
 #include "OllyLang.h"
-
+#include "OllyMenu.h"
 #include "HelperFunctions.h"
 
 HINSTANCE hinst;
 
 const int MINOLLYDBGVERSION = 201;
-
-//wchar_t buff[65535] = {0}; // Temp storage
 
 int script_state = SS_NONE; // Script state
 
@@ -23,7 +21,11 @@ bool dbgfocus = false;
 
 void* pmemforexec;
 
-vector<t_menu> cpu_menu;
+OllyMenu cpu_menu;
+vector<t_menu> cpu_menu_vec;
+
+OllyMenu script_menu;
+vector<t_menu> script_menu_vec;
 
 MRU mru(10);
 
@@ -40,7 +42,11 @@ int Mresume(t_table* pt, wchar_t* name, ulong index, int mode);
 int Mabort(t_table* pt, wchar_t* name, ulong index, int mode);
 int Medit(t_table* pt, wchar_t* name, ulong index, int mode);
 
-int Mmru(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mmruload(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mmrurun(t_table* pt, wchar_t* name, ulong index, int mode);
+
+int Mrun(t_table* pt, wchar_t* name, ulong index, int mode);
+int Mload(t_table* pt, wchar_t* name, ulong index, int mode);
 
 BOOL APIENTRY DllMain(HINSTANCE hi, DWORD reason, LPVOID reserved)
 {
@@ -202,102 +208,45 @@ int ODBG_Pausedex(int reasonex, int dummy, t_reg* reg, DEBUG_EVENT* debugevent)
 	return 0;
 }
 
-vector<t_menu> build_cpu_menu()
+OllyMenu build_cpu_menu()
 {
-	/*
-	wcscpy_s(buff, L"# Run Scri&pt{0 Open...|");
-	mruGetCurrentMenu(&buff[wcslen(buff)]);
-	wcscat_s(buff,
-				L"}"
-				L"Script &Functions...{"
-				L"30  Script &Window\t"
-				L",31  Script &Log\t"
-				L"|"
-				L",4 Step\t"
-				L",2 Pause\tPAUSE"
-				L",3 Resume\t"
-				L",1 Abort\t"
-				L"|"
-				L",32 Edit Script..."
-				L"}"
-			);
-	*/
-
-	t_menu top_menu[] =
+	OllyMenu menu;
+	OllyMenu sub_run = mru.build_menu(Mmrurun);
+	t_menu sub_functions[] =
 	{
-		{
-			L"Run Scri&pt",
-			NULL,
-			K_NONE, NULL, NULL/*sub*/, 0
-		},
-
-		{
-			L"Script &Functions",
-			NULL,
-			K_NONE, NULL, NULL/*sub*/, 0
-		}
+		{ L"Script &Window", NULL, K_NONE, Mscriptwindow, NULL, 0 },
+		{ L"Script &Log", NULL, K_NONE, Mlogwindow, NULL, 0 },
+		OllyMenu::divider,
+		{ L"Step", NULL, K_NONE, Mstep, NULL, 0 },
+		{ L"Pause", NULL, K_NONE, Mpause, NULL, 0 },
+		{ L"Resume", NULL, K_NONE, Mresume, NULL, 0 },
+		{ L"Abort", NULL, K_NONE, Mabort, NULL, 0 },
+		OllyMenu::divider,
+		{ L"Edit Script", NULL, K_NONE, Medit, NULL, 0 },
+		OllyMenu::empty
 	};
 
-	vector<t_menu> mru_menu = mru.build_menu(Mmru);
+	menu.add(L"&Run Script", L"", K_NONE, sub_run);
+	menu.add(L"Script &Functions", L"", K_NONE, sub_functions);
 
-	t_menu functions_menu[] =
-	{
-		{
-			L"Script &Window",
-			NULL,
-			K_NONE, Mscriptwindow, NULL, 0
-		},
+	return menu;
+}
 
-		{
-			L"Script &Log",
-			NULL,
-			K_NONE, Mlogwindow, NULL, 0
-		},
+OllyMenu build_script_menu()
+{
+	OllyMenu menu;
+	OllyMenu sub_run, sub_load;
 
-		{
-			L"|Step",
-			NULL,
-			K_NONE, Mstep, NULL, 0
-		},
+	OllyMenu mru_menu = mru.build_menu(Mmrurun);
 
-		{
-			L"Pause",
-			NULL,
-			K_NONE, Mpause, NULL, 0
-		},
+	sub_run.add(L"&Open...", L"", K_NONE, Mrun);
+	sub_run.add(mru_menu);
 
-		{
-			L"Resume",
-			NULL,
-			K_NONE, Mresume, NULL, 0
-		},
+	sub_load.add(L"&Open...", L"", K_NONE, Mload);
+	sub_load.add(mru_menu);
 
-		{
-			L"Abort",
-			NULL,
-			K_NONE, Mabort, NULL, 0
-		},
-
-		{
-			L"Edit Script",
-			NULL,
-			K_NONE, Medit, NULL, 0
-		}
-	};
-
-	const t_menu empty = { NULL, NULL, K_NONE, NULL, NULL, 0 };
-
-	vector<t_menu> menu;
-
-	menu.insert(menu.end(), top_menu, top_menu + _countof(top_menu));
-	menu.insert(menu.end(), empty);
-	menu.insert(menu.end(), mru_menu.begin(), mru_menu.end());
-	menu.insert(menu.end(), empty);
-	menu.insert(menu.end(), functions_menu, functions_menu + _countof(functions_menu));
-	menu.insert(menu.end(), empty);
-
-	menu[0].submenu = &menu[_countof(top_menu) + 1];
-	menu[1].submenu = &menu[0].submenu[mru_menu.size() + 1];
+	menu.add(L"&Run Script", L"", K_NONE, sub_run);
+	menu.add(L"&Load Script", L"", K_NONE, sub_load);
 
 	return menu;
 }
@@ -319,7 +268,7 @@ extc HWND _export cdecl DebugScript(const char* filename)
 		ollylang->LoadScript(w_strtow(file));
 		ollylang->Pause();
 		script_state = ollylang->script_state;
-		initProgTable();
+		initProgTable(0); // FIX
 		SetForegroundWindow(ollylang->wndProg.hw);
 		SetFocus(ollylang->wndProg.hw);
 	}
@@ -628,7 +577,9 @@ int Mscriptwindow(t_table* pt, wchar_t* name, ulong index, int mode)
 
 		case MENU_EXECUTE:
 			//ODBG_Pluginaction(PM_MAIN, 30, NULL);
-			initProgTable();
+			script_menu = build_script_menu();
+			script_menu_vec = script_menu.build();
+			initProgTable(script_menu_vec.data());
 			return MENU_NOREDRAW;
 
 		default:
@@ -734,7 +685,7 @@ int Mcommand(t_table* pt, wchar_t* name, ulong index, int mode)
 	}
 }
 
-int Mmru(t_table* pt, wchar_t* name, ulong index, int mode)
+int Mmrurun(t_table* pt, wchar_t* name, ulong index, int mode)
 {
 	switch (mode)
 	{
@@ -744,16 +695,14 @@ int Mmru(t_table* pt, wchar_t* name, ulong index, int mode)
 		case MENU_EXECUTE:
 			{
 				wstring file = mru.get(index);
-				// Load script
-				ollylang->LoadScript(file.c_str());
-
+				ollylang->LoadScript(file); // Load script
 				mru.add(file); // Push to front
 
 				// Save script directory
 				wchar_t buff[MAX_PATH];
-				wchar_t* buf2;
-				GetFullPathName(buff, _countof(buff), buff, &buf2);
-				*buf2 = 0;
+				wchar_t* file_part;
+				GetFullPathName(file.c_str(), _countof(buff), buff, &file_part);
+				*file_part = L'\0';
 				Pluginwritestringtoini(hinst, L"ScriptDir", buff);
 
 				ollylang->Resume();
@@ -763,6 +712,70 @@ int Mmru(t_table* pt, wchar_t* name, ulong index, int mode)
 					SetFocus(ollylang->wndProg.hw);
 				}
 			}
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
+int Mmruload(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
+			{
+				wstring file = mru.get(index);
+				ollylang->LoadScript(file); // Load script
+				mru.add(file); // Push to front
+
+				// Save script directory
+				wchar_t buff[MAX_PATH];
+				wchar_t* file_part;
+				GetFullPathName(file.c_str(), _countof(buff), buff, &file_part);
+				*file_part = L'\0';
+				Pluginwritestringtoini(hinst, L"ScriptDir", buff);
+
+				//ollylang->Resume();
+				if (ollylang->wndProg.hw)
+				{
+					SetForegroundWindow(ollylang->wndProg.hw);
+					SetFocus(ollylang->wndProg.hw);
+				}
+			}
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
+int Mrun(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
+			return MENU_NOREDRAW;
+
+		default:
+			return MENU_ABSENT;
+	}
+}
+
+int Mload(t_table* pt, wchar_t* name, ulong index, int mode)
+{
+	switch (mode)
+	{
+		case MENU_VERIFY:
+			return MENU_NORMAL;
+
+		case MENU_EXECUTE:
 			return MENU_NOREDRAW;
 
 		default:
@@ -1044,13 +1057,17 @@ int Medit(t_table* pt, wchar_t* name, ulong index, int mode)
 t_menu mainmenu[] =
 {
 	{
-		L"&Run &Script...",
+		L"&Run Script...",
 		L"Run a script",
 		KK_DIRECT | KK_SHIFT | 'R', Mrunscript, NULL, 0
 	},
 
+	//OllyMenu::divider
+
+	// Seperate t_menu for divider after first element doesn't work...??
+
 	{
-		L"&Script Window",
+		L"|&Script Window",
 		L"Open the script window",
 		KK_DIRECT | KK_SHIFT | 'S', Mscriptwindow, NULL, 0
 	},
@@ -1061,14 +1078,18 @@ t_menu mainmenu[] =
 		KK_DIRECT | KK_SHIFT | 'L', Mlogwindow, NULL, 0
 	},
 
+	OllyMenu::divider,
+
 	{
-		L"|&Command...",
+		L"&Command...",
 		L"Execute a single command",
 		KK_DIRECT | KK_SHIFT | 'C', Mcommand, NULL, 0
 	},
 
+	OllyMenu::divider,
+
 	{
-		L"|&Help",
+		L"Help",
 		L"Help",
 		K_NONE, Mhelp, NULL, 0
 	},
@@ -1079,7 +1100,7 @@ t_menu mainmenu[] =
 		K_NONE, Mabout, NULL, 0
 	},
 
-	{ NULL, NULL, K_NONE, NULL, NULL, 0 }
+	OllyMenu::empty
 };
 
 /**
@@ -1093,12 +1114,13 @@ t_menu mainmenu[] =
  */
 t_menu* ODBG2_Pluginmenu(wchar_t* type)
 {
-	if (wcscmp(type, PWM_MAIN) == 0)
+	if(wcscmp(type, PWM_MAIN) == 0)
 		return mainmenu;
 	else if(wcscmp(type, PWM_DISASM) == 0)
 	{
 		cpu_menu = build_cpu_menu();
-		return cpu_menu.data();
+		cpu_menu_vec = cpu_menu.build();
+		return cpu_menu_vec.data();
 	}
 	else
 		return NULL; // No menu
@@ -1156,7 +1178,7 @@ int ODBG2_Pluginquery(int ollydbgversion, wchar_t pluginname[SHORTNAME], wchar_t
 	// Check whether OllyDbg has compatible version. This plugin uses only the
 	// most basic functions, so this check is done pro forma, just to remind of
 	// this option.
-	if (ollydbgversion < MINOLLYDBGVERSION)
+	if(ollydbgversion < MINOLLYDBGVERSION)
 	{
 		MessageBox(hwollymain, L"Incompatible Ollydbg Version !", PLUGIN_NAME, MB_OK | MB_ICONERROR | MB_TOPMOST);
 		return 0;
@@ -1174,14 +1196,19 @@ int ODBG2_Pluginquery(int ollydbgversion, wchar_t pluginname[SHORTNAME], wchar_t
 
 	ollylang = new OllyLang();
 
-	if (Createsorteddata(
-	            &ollylang->wndLog.sorted,          // Descriptor of sorted data
-	            sizeof(t_wndlog_data),             // Size of single data item
-	            20,                                // Initial number of allocated items
-	            wndlog_sort_function,  // Sorting function
-	            wndlog_dest_function,  // Data destructor
-	            0)                                 // Simple data, no special options
-	        != 0)	return -1;
+	
+
+	if(0 != Createsorteddata(&ollylang->wndLog.sorted, // Descriptor of sorted data
+	                         sizeof(t_wndlog_data),    // Size of single data item
+	                         20,                       // Initial number of allocated items
+	                         wndlog_sort_function,     // Sorting function
+	                         wndlog_dest_function,     // Data destructor
+	                         0))                       // Simple data, no special options
+	{
+		return -1;
+	}
+
+	
 
 //2	if (Createsorteddata(&(ollylang->wndProg.sorted), sizeof(t_wndprog_data),50,
 //2		wndprog_sort_function,wndprog_dest_function, 0) != 0)	return -1;
@@ -1212,17 +1239,17 @@ int ODBG2_Pluginquery(int ollydbgversion, wchar_t pluginname[SHORTNAME], wchar_t
  */
 void ODBG2_Pluginreset()
 {
-	if (ollylang == NULL)
-		return;
-
-	//we keep the script state on restart (paused or not)
-	if (ollylang->script_state == SS_PAUSED)
+	if(ollylang)
 	{
-		ollylang->Reset();
-		ollylang->Pause();
+		//we keep the script state on restart (paused or not)
+		if (ollylang->script_state == SS_PAUSED)
+		{
+			ollylang->Reset();
+			ollylang->Pause();
+		}
+		else
+			ollylang->Reset();
 	}
-	else
-		ollylang->Reset();
 }
 
 /**
@@ -1273,19 +1300,20 @@ void ODBG2_Pluginanalyse(t_module* pmod)
  */
 int ODBG2_Pluginclose()
 {
-	if (ollylang == NULL) return 0;
-
-	if (ollylang->hwndinput != 0)
+	if(ollylang)
 	{
-		SendMessage(ollylang->hwndinput, WM_CLOSE, 0, 0);
-		ollylang->hwndinput = 0;
+		if(ollylang->hwndinput != 0)
+		{
+			SendMessage(ollylang->hwndinput, WM_CLOSE, 0, 0);
+			ollylang->hwndinput = 0;
+		}
+
+		ollylang->SaveBreakPoints(ollylang->scriptpath);
+		Writetoini(NULL, PLUGIN_NAME, L"Restore Script window", L"%i", (ollylang->wndProg.hw != NULL));
+		Writetoini(NULL, PLUGIN_NAME, L"Restore Script Log", L"%i", (ollylang->wndLog.hw != NULL));
+
+		mru.save();
 	}
-
-	ollylang->SaveBreakPoints(ollylang->scriptpath);
-	Writetoini(NULL, PLUGIN_NAME, L"Restore Script window", L"%i", (ollylang->wndProg.hw != NULL));
-	Writetoini(NULL, PLUGIN_NAME, L"Restore Script Log", L"%i", (ollylang->wndLog.hw != NULL));
-
-	mru.save();
 
 	return 0;
 }
