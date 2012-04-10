@@ -89,6 +89,7 @@
     <ClCompile Include="ODbgScript.cpp" />
     <ClCompile Include="OllyLang.cpp" />
     <ClCompile Include="OllyLangCommands.cpp" />
+    <ClCompile Include="OllyMenu.cpp" />
     <ClCompile Include="Progress.cpp" />
     <ClCompile Include="Search.cpp" />
     <ClCompile Include="var.cpp" />
@@ -102,6 +103,7 @@
     <ClInclude Include="ODbgScript.h" />
     <ClInclude Include="ollydbg201.h" />
     <ClInclude Include="OllyLang.h" />
+    <ClInclude Include="OllyMenu.h" />
     <ClInclude Include="Progress.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Search.h" />

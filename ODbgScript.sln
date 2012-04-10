@@ -3,16 +3,44 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ODbgScript", "ODbgScript.vcxproj", "{934E3FEA-9C0C-6AFD-5227-2522A0779229}"
 EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "ollydbg", "ollydbg\ollydbg.exe", "{148F329A-2EAE-4CFE-BD14-0D7EFED49EE8}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = C:\Coding\CPP\ODbgScript\ollydbg\ollydbg.exe
+		RemoteMachine = WIN-0LSOMBSEGAB
+		StartingDirectory = C:\Coding\CPP\ODbgScript\ollydbg
+		Environment = Default
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|Win32 = Debug|Win32
+		Debug|x86 = Debug|x86
+		Release|Mixed Platforms = Release|Mixed Platforms
 		Release|Win32 = Release|Win32
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Debug|Win32.ActiveCfg = Debug|Win32
 		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Debug|Win32.Build.0 = Debug|Win32
+		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Debug|x86.ActiveCfg = Debug|Win32
+		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Release|Win32.ActiveCfg = Release|Win32
 		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Release|Win32.Build.0 = Release|Win32
+		{934E3FEA-9C0C-6AFD-5227-2522A0779229}.Release|x86.ActiveCfg = Release|Win32
+		{148F329A-2EAE-4CFE-BD14-0D7EFED49EE8}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{148F329A-2EAE-4CFE-BD14-0D7EFED49EE8}.Debug|Win32.ActiveCfg = Debug|x86
+		{148F329A-2EAE-4CFE-BD14-0D7EFED49EE8}.Debug|x86.ActiveCfg = Debug|x86
+		{148F329A-2EAE-4CFE-BD14-0D7EFED49EE8}.Release|Mixed Platforms.ActiveCfg = Debug|x86
+		{148F329A-2EAE-4CFE-BD14-0D7EFED49EE8}.Release|Win32.ActiveCfg = Debug|x86
+		{148F329A-2EAE-4CFE-BD14-0D7EFED49EE8}.Release|x86.ActiveCfg = Debug|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
